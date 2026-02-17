@@ -1,0 +1,313 @@
+/* root variables for easy theme switching */
+:root {
+  --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --card-bg: rgba(255, 255, 255, 0.95);
+  --text-main: #2d3436;
+  --navbar-bg: #ffffff;
+  --accent-color: #6c5ce7;
+  --popup-bg: #ffffff;
+  --border-color: rgba(0, 0, 0, 0.05);
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme='dark'] {
+  /* Deeper midnight background for more depth */
+  --bg-gradient: linear-gradient(135deg, #14142b 0%, #0a0a14 100%); 
+  /* Brighter card background to pop against the dark floor */
+  --card-bg: rgba(30, 30, 50, 0.7); 
+  --text-main: #f8f9fa;
+  --navbar-bg: #14142b;
+  --accent-color: #a29bfe; 
+  --popup-bg: #1e1e2e;
+  --border-color: rgba(255, 255, 255, 0.1);
+  --shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  display: flex; /* Kept for Login/Signup */
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: var(--bg-gradient);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  transition: background 0.3s ease;
+}
+
+/* ===== Navbar Refinement ===== */
+.navbar {
+  display: flex;
+  position: fixed;
+  justify-content: space-around;
+  align-items: center;
+  top: 0; 
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  border-bottom: 2px solid var(--border-color);
+  width: 100%;
+  background-color: var(--navbar-bg);
+  transition: all 0.3s ease;
+}
+
+.navbar h1 {
+  color: var(--text-main); 
+  padding: 10px 20px;
+  font-size: 1.5rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.navbar-icons {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 10px 20px;
+}
+
+/* Theme Toggle Button */
+.theme-toggle {
+  background: transparent;
+  border: 2px solid var(--border-color);
+  cursor: pointer;
+  font-size: 1.2rem;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.theme-toggle:hover {
+  background: var(--accent-color);
+  color: white;
+}
+
+.nav-item {
+  border: 2px solid var(--border-color);
+  cursor: pointer;
+  background: none;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px; 
+  height: 38px;
+  border-radius: 50%;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.nav-label {
+  position: absolute;
+  top: 45px; 
+  background: var(--accent-color);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: all 0.2s ease;
+  pointer-events: none;
+}
+
+.nav-item:hover {
+  transform: scale(1.1);
+  background-color: var(--accent-color);
+  color: white;
+}
+
+.nav-item:hover .nav-label {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ===== Feature Grid (Home Page) ===== */
+.home-wrapper {
+  width: 100%;
+  padding-top: 100px;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 25px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.feature-card {
+  background: var(--card-bg);
+  padding: 35px 20px;
+  border-radius: 20px;
+  text-align: center;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+}
+
+.feature-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+  border-color: var(--accent-color);
+}
+
+.feature-icon {
+  font-size: 3rem;
+  margin-bottom: 15px;
+  display: block;
+}
+
+/* ===== Profile Popup (Screenshot Style) ===== */
+/* ===== Small Avatar (Navbar) ===== */
+.avatar-circle {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;              /* 🔥 MAKES IT ROUND */
+  background-color: var(--accent-color);
+  color: white;
+  font-weight: 700;
+  font-size: 16px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+  user-select: none;
+
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.avatar-circle:hover {
+  transform: scale(1.08);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.25);
+}
+
+.account-popup {
+  position: absolute;
+  right: 0;
+  top: 55px;
+  background: var(--popup-bg);
+  border-radius: 16px;
+  width: 280px;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+  overflow: hidden;
+  z-index: 9999;
+  border: 1px solid var(--border-color);
+}
+
+.popup-header {
+  background: var(--bg-gradient);
+  padding: 20px;
+  color: white;
+  text-align: center;
+}
+
+.popup-avatar-large {
+  width: 65px;
+  height: 65px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 10px;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.popup-body {
+  padding: 15px;
+}
+
+.popup-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  font-size: 14px;
+  color: var(--text-main);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.popup-logout {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  background: transparent;
+  color: #ff4d4d;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.popup-logout:hover {
+  background: #fff0f0;
+}
+
+/* ===== Login Container (Kept Original) ===== */
+.login-container {
+  background: #ffffff;
+  padding: 2.5rem;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+}
+.google-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px;
+  margin-top: 15px;
+  border-radius: 12px;
+  background-color: #FFFFFF;
+  color: #286FB4; /* Using your Primary Blue */
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid #B0DDE4; /* Using your Soft Blue */
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(40, 111, 180, 0.05);
+}
+
+.google-btn:hover {
+  background-color: #f8fbfe;
+  border-color: #286FB4;
+  box-shadow: 0 4px 12px rgba(40, 111, 180, 0.12);
+  transform: translateY(-1px);
+}
+
+.google-btn:active {
+  transform: translateY(0);
+}
+
+.google-logo {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+/* Optional: Label styling inside the button */
+.google-btn span {
+  display: inline-block;
+  margin-top: 1px; /* Visual alignment fix */
+}
