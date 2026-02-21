@@ -1,24 +1,35 @@
-import { addDoc, collection } from "firebase/firestore";
+import { 
+  addDoc, 
+  collection, 
+  query, 
+  where, 
+  onSnapshot, 
+  deleteDoc, 
+  doc, 
+  getDoc 
+} from "firebase/firestore";
 import { db } from "../firebase";
 import { auth } from "../firebase";
 import "../styles/travel.css";
 import { useEffect, useState } from "react";
-import { doc, getDoc } from "firebase/firestore";
 
 function PostCard({ post, averageRating }) {
-
-  // 🔥 NEW STATE for poster gender
+  // 🔥 EXISTING STATE
   const [posterGender, setPosterGender] = useState(null);
+  
+  // 🔥 NEW STATE for request tracking
+  const [existingRequest, setExistingRequest] = useState(null);
 
-  // 🔥 FETCH gender from users collection
+  // 1️⃣ Determine if the logged-in user is the one who created this post
+  const isMyPost = auth.currentUser?.uid === post.userId;
+
+  // 🔥 EXISTING EFFECT: Fetch gender
   useEffect(() => {
     const fetchGender = async () => {
       if (!post.userId) return;
-
       try {
         const userRef = doc(db, "users", post.userId);
         const userSnap = await getDoc(userRef);
-
         if (userSnap.exists()) {
           setPosterGender(userSnap.data().gender);
         }
@@ -26,17 +37,47 @@ function PostCard({ post, averageRating }) {
         console.log("Error fetching gender:", error);
       }
     };
-
     fetchGender();
   }, [post.userId]);
 
+  // 🔥 NEW EFFECT: Check if user already requested this post
+  useEffect(() => {
+    if (!auth.currentUser || !post.id) return;
 
+    const q = query(
+      collection(db, "joinRequests"),
+      where("postId", "==", post.id),
+      where("requesterId", "==", auth.currentUser.uid)
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      if (!snapshot.empty) {
+        setExistingRequest({ id: snapshot.docs[0].id, ...snapshot.docs[0].data() });
+      } else {
+        setExistingRequest(null);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [post.id]);
+
+  // 🔥 NEW LOGIC: Handle Revoke
+  const handleRevoke = async () => {
+    if (window.confirm("Do you want to revoke your request?")) {
+      await deleteDoc(doc(db, "joinRequests", existingRequest.id));
+      alert("Request revoked.");
+    }
+  };
+
+  // 🔥 UPDATED LOGIC: Handle Request (with safety check)
   const handleRequest = async () => {
-
-    console.log("Current User:", auth.currentUser);
-
     if (!auth.currentUser) {
       alert("User not logged in");
+      return;
+    }
+
+    if (isMyPost) {
+      alert("You cannot request to join your own post.");
       return;
     }
 
@@ -51,7 +92,6 @@ function PostCard({ post, averageRating }) {
     alert("Request Sent!");
   };
 
-
   return (
     <div className="travel-card">
       <div className="card-header">
@@ -63,8 +103,6 @@ function PostCard({ post, averageRating }) {
 
       <div className="rating-badge">
         <p><strong>User:</strong> {post.userId}</p>
-
-        {/* 🔥 ADDED GENDER DISPLAY */}
         <p>
           <strong>Gender:</strong>{" "}
           {posterGender
@@ -73,15 +111,35 @@ function PostCard({ post, averageRating }) {
               : "👩 Female"
             : "Loading..."}
         </p>
-
         <p>
           ⭐ {averageRating ? `${averageRating} / 5` : "No ratings yet"}
         </p>
       </div>
 
-      <button className="action-btn" onClick={handleRequest}>
-        Request to Join
-      </button>
+      {/* 2️⃣ LOGIC: Handle Button Display based on Ownership and Request Status */}
+      {isMyPost ? (
+        <div className="owner-status" style={{ 
+          marginTop: "10px", 
+          color: "#aaa", 
+          fontSize: "0.9rem", 
+          fontStyle: "italic" 
+        }}>
+          ✨ This is your journey
+        </div>
+      ) : existingRequest ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "10px" }}>
+          <button className="action-btn" style={{ background: "#6c757d" }} disabled>
+            Requested ({existingRequest.status})
+          </button>
+          <button className="action-btn secondary-btn" onClick={handleRevoke}>
+            Revoke Request
+          </button>
+        </div>
+      ) : (
+        <button className="action-btn" onClick={handleRequest}>
+          Request to Join
+        </button>
+      )}
     </div>
   );
 }

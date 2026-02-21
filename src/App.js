@@ -7,6 +7,7 @@ import THome from "./pages/TravelHome";
 import ChatPage from "./pages/ChatPage";
 import Profile from "./pages/Profile";
 import TravelHistory from "./pages/TravelHistory";
+import MyPosts from "./pages/MyPosts"; // or "./components/MyPosts"
 /*import CreatePost from "./components/CreatePost";*/
 
 function App() {
@@ -20,6 +21,7 @@ function App() {
       <Route path="/chat/:postId" element={<ChatPage />} />
       <Route path="/profile/:userId" element={<Profile />} />
       <Route path="/history" element={<TravelHistory />} />
+      <Route path="/myposts" element={<MyPosts />} />
       
       </Route>
     </Routes>

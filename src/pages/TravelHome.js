@@ -60,8 +60,10 @@ function THome() {
   const matchesPosterFilter =
     companionFilter === "all" ||
     post.userGender === companionFilter;
+  
+  const isNotMine = post.userId !== auth.currentUser?.uid;
 
-  return matchesSearch && matchesVisibility && matchesPosterFilter;
+  return matchesSearch && matchesVisibility && matchesPosterFilter && isNotMine;
 });
 
   return (
@@ -71,6 +73,7 @@ function THome() {
         <Link to="/travelbuddy" className="nav-btn" title="Home">🏠</Link>
         <Link to="/history" className="nav-btn" title="Travel History">📜</Link>
         <Link to="/profile/testUser" className="nav-btn" title="Profile">👤</Link>
+        <Link to="/myposts" className="nav-btn" title="My Posts">📍</Link>
     </nav>
 
     <h1 className="page-title" style={{ textAlign: 'center', color: 'white' }}>Explore Journeys</h1>
