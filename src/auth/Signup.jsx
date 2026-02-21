@@ -7,10 +7,16 @@ import { useNavigate, Link } from "react-router-dom";
 
 const Signup = () => {
   const [loading, setLoading] = useState(false);
+  const [gender, setGender] = useState(""); 
   const navigate = useNavigate();
 
   const signupWithGoogle = async () => {
     try {
+      if (!gender) {
+      alert("Please select your gender before signing up.");
+      return;
+    }
+
       setLoading(true);
 
       // 🔑 Force account selection every time
@@ -20,7 +26,7 @@ const Signup = () => {
 
       // Clear any previous session
       await signOut(auth);
-
+ 
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
 
@@ -43,11 +49,11 @@ const Signup = () => {
 
       // ✅ Create new student record
       await setDoc(userRef, {
-        name: user.displayName,
-        email: user.email,
-        createdAt: new Date(),
-      });
-
+  name: user.displayName,
+  email: user.email,
+  gender: gender,   // 🔥 ADD THIS
+  createdAt: new Date(),
+});
       alert("Signup successful!");
       navigate("/");
 
@@ -62,6 +68,23 @@ const Signup = () => {
   return (
     <div className="login-container">
       <h2>SASTRA Student Signup</h2>
+      <div style={{ marginBottom: "15px" }}>
+  <label>Select Gender</label>
+  <select
+    value={gender}
+    onChange={(e) => setGender(e.target.value)}
+    style={{
+      width: "100%",
+      padding: "10px",
+      marginTop: "5px",
+      borderRadius: "8px"
+    }}
+  >
+    <option value="">-- Select Gender --</option>
+    <option value="male">Male</option>
+    <option value="female">Female</option>
+  </select>
+</div>
       <button
           className="google-btn"
           onClick={signupWithGoogle}

@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { useState, useEffect } from "react";
+import { collection, addDoc, serverTimestamp, doc, getDoc } from "firebase/firestore";
 import { db, auth } from "../firebase";
 import "../styles/travel.css";
 
@@ -8,15 +8,40 @@ function CreatePost() {
   const [destination, setDestination] = useState("");
   const [date, setDate] = useState("");
   const [description, setDescription] = useState("");
+  const [allowedGender, setAllowedGender] = useState("all");
+  const [currentUserGender, setCurrentUserGender] = useState(null);
+
+  // 🔥 FETCH LOGGED IN USER GENDER
+  useEffect(() => {
+    const fetchGender = async () => {
+      if (!auth.currentUser) return;
+
+      try {
+        const userRef = doc(db, "users", auth.currentUser.uid);
+        const userSnap = await getDoc(userRef);
+
+        if (userSnap.exists()) {
+          setCurrentUserGender(userSnap.data().gender);
+        }
+      } catch (error) {
+        console.error("Error fetching user gender:", error);
+      }
+    };
+
+    fetchGender();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     try {
       await addDoc(collection(db, "travelPosts"), {
         destination,
         date,
         description,
-        userId: auth.currentUser?.uid || "user123",
+        allowedGender,
+        userId: auth.currentUser.uid,
+        userGender: currentUserGender, // 🔥 STORED HERE
         createdAt: serverTimestamp(),
       });
 
@@ -24,7 +49,7 @@ function CreatePost() {
       setDestination("");
       setDate("");
       setDescription("");
-      setIsOpen(false); // Close modal after success
+      setIsOpen(false);
     } catch (error) {
       console.error("Error creating post:", error);
     }
@@ -32,25 +57,28 @@ function CreatePost() {
 
   return (
     <>
-      {/* ➕ Floating Action Button (FAB) */}
-      <button 
-        className="fab-button" 
+      <button
+        className="fab-button"
         onClick={() => setIsOpen(true)}
         title="Create New Journey"
       >
         +
       </button>
 
-      {/* 🖥️ Modal Overlay */}
       {isOpen && (
         <div className="modal-overlay" onClick={() => setIsOpen(false)}>
-          <div 
-            className="travel-card modal-content" 
-            onClick={(e) => e.stopPropagation()} // Prevents closing when clicking inside form
+          <div
+            className="travel-card modal-content"
+            onClick={(e) => e.stopPropagation()}
           >
             <div className="modal-header">
               <h2 className="destination-title">Plan New Journey</h2>
-              <button className="close-modal" onClick={() => setIsOpen(false)}>&times;</button>
+              <button
+                className="close-modal"
+                onClick={() => setIsOpen(false)}
+              >
+                &times;
+              </button>
             </div>
 
             <form className="create-post-form" onSubmit={handleSubmit}>
@@ -78,6 +106,19 @@ function CreatePost() {
               </div>
 
               <div className="input-group">
+                <label className="input-label">Who can join?</label>
+                <select
+                  className="custom-search-input"
+                  value={allowedGender}
+                  onChange={(e) => setAllowedGender(e.target.value)}
+                >
+                  <option value="all">Anyone</option>
+                  <option value="male">Only Male</option>
+                  <option value="female">Only Female</option>
+                </select>
+              </div>
+
+              <div className="input-group">
                 <label className="input-label">Journey Details</label>
                 <textarea
                   className="custom-search-input textarea-fixed"
@@ -88,7 +129,9 @@ function CreatePost() {
                 />
               </div>
 
-              <button type="submit" className="action-btn">Create Post</button>
+              <button type="submit" className="action-btn">
+                Create Post
+              </button>
             </form>
           </div>
         </div>

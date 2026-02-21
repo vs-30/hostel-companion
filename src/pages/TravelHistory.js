@@ -8,6 +8,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../firebase";
 import { useNavigate } from "react-router-dom";
+import { auth } from "../firebase";
 import "../styles/travel.css";
 
 function TravelHistory() {
@@ -18,7 +19,7 @@ function TravelHistory() {
   const [comment, setComment] = useState("");
   const navigate = useNavigate();
 
-  // 🔹 Listen to Join Requests
+  // 🔹 Listen to Join Requests (FILTERED)
   useEffect(() => {
     const unsubscribe = onSnapshot(
       collection(db, "joinRequests"),
@@ -27,7 +28,14 @@ function TravelHistory() {
           id: doc.id,
           ...doc.data()
         }));
-        setRequests(data);
+
+        const filtered = data.filter(
+          r =>
+            r.postOwnerId === auth.currentUser?.uid ||
+            r.requesterId === auth.currentUser?.uid
+        );
+
+        setRequests(filtered);
       }
     );
 
@@ -50,31 +58,57 @@ function TravelHistory() {
     return () => unsubscribe();
   }, []);
 
-  // 🔹 Accept / Reject
+  // 🔹 Accept
   const handleAccept = async (id) => {
     await updateDoc(doc(db, "joinRequests", id), {
       status: "accepted"
     });
   };
 
+  // 🔹 Reject
   const handleReject = async (id) => {
     await updateDoc(doc(db, "joinRequests", id), {
       status: "rejected"
     });
   };
 
-  const openChat = (requestId) => {
-    navigate(`/chat/${requestId}`);
+  // 🔹 Open Chat
+  const openChat = (request) => {
+    if (request.status !== "accepted") return;
+
+    const currentUid = auth.currentUser?.uid;
+
+    if (
+      currentUid === request.postOwnerId ||
+      currentUid === request.requesterId
+    ) {
+      navigate(`/chat/${request.id}`);
+    } else {
+      alert("You are not allowed to access this chat.");
+    }
   };
 
-  // 🔹 Submit Rating
+  // 🔹 Submit Rating (WITH duplicate prevention)
   const submitRating = async () => {
+
+    const alreadyRated = ratings.find(
+      r =>
+        r.requestId === selectedRequest.id &&
+        r.ratedBy === auth.currentUser?.uid
+    );
+
+    if (alreadyRated) {
+      alert("You already rated this trip.");
+      return;
+    }
+
     await addDoc(collection(db, "ratings"), {
       requestId: selectedRequest.id,
       postDestination: selectedRequest.postDestination,
       rating: Number(rating),
       comment,
-      ratedUserId: selectedRequest.postOwnerId
+      ratedUserId: selectedRequest.postOwnerId,
+      ratedBy: auth.currentUser?.uid
     });
 
     alert("Rating submitted!");
@@ -102,63 +136,134 @@ function TravelHistory() {
 
   return (
     <div className="travel-container">
-      {/*<nav className="sub-nav">
-        <Link to="/travelbuddy" className="nav-btn">🏠</Link>
-        <Link to="/history" className="nav-btn">📜</Link>
-        <Link to="/profile/testUser" className="nav-btn">👤</Link>
-      </nav>*/}
-
       <h1 className="page-title">Travel Requests</h1>
 
       <div className="posts-list">
         {requests.map(request => (
           <div key={request.id} className="travel-card">
             <div className="card-header">
-              <h3 className="destination-title">{request.postDestination}</h3>
-              <span className={`status-badge ${request.status}`}>{request.status}</span>
+              <h3 className="destination-title">
+                {request.postDestination}
+              </h3>
+              <span className={`status-badge ${request.status}`}>
+                {request.status}
+              </span>
             </div>
-            
-            <p className="rating-badge">⭐ {getAverageRating(request.postOwnerId)}</p>
+
+            <p className="rating-badge">
+              ⭐ {getAverageRating(request.postOwnerId)}
+            </p>
 
             <div className="card-footer">
-              {request.status === "pending" && (
+
+              {/* 🔹 POST OWNER CAN ACCEPT */}
+              {auth.currentUser?.uid === request.postOwnerId &&
+                request.status === "pending" && (
                 <div style={{ display: "flex", gap: "10px" }}>
-                  <button className="action-btn" onClick={() => handleAccept(request.id)}>Accept</button>
-                  <button className="action-btn secondary-btn" onClick={() => handleReject(request.id)}>Reject</button>
+                  <button
+                    className="action-btn"
+                    onClick={() => handleAccept(request.id)}
+                  >
+                    Accept
+                  </button>
+
+                  <button
+                    className="action-btn secondary-btn"
+                    onClick={() => handleReject(request.id)}
+                  >
+                    Reject
+                  </button>
                 </div>
               )}
-              {request.status === "accepted" && (
-                <div style={{ display: "flex", gap: "10px" }}>
-                  <button className="action-btn" onClick={() => navigate(`/chat/${request.id}`)}>Chat</button>
-                  <button className="action-btn secondary-btn" onClick={() => setSelectedRequest(request)}>Rate</button>
-                </div>
+
+              {/* 🔹 REQUESTER SEES STATUS */}
+              {auth.currentUser?.uid === request.requesterId && (
+                <p>Status: {request.status}</p>
               )}
+
+              {/* 🔥 OPEN CHAT BUTTON */}
+              {request.status === "accepted" &&
+                (auth.currentUser?.uid === request.postOwnerId ||
+                 auth.currentUser?.uid === request.requesterId) && (
+                <button
+                  className="action-btn"
+                  style={{ marginTop: "10px" }}
+                  onClick={() => openChat(request)}
+                >
+                  Open Chat
+                </button>
+              )}
+
+              {/* ⭐ RATE BUTTON (Only requester can rate after accepted) */}
+              {request.status === "accepted" &&
+                auth.currentUser?.uid === request.requesterId && (
+                <button
+                  className="action-btn secondary-btn"
+                  style={{ marginTop: "10px" }}
+                  onClick={() => setSelectedRequest(request)}
+                >
+                  Rate Companion
+                </button>
+              )}
+
             </div>
           </div>
         ))}
       </div>
 
+      {/* ⭐ RATING MODAL */}
       {selectedRequest && (
         <div className="modal-overlay">
-          <div className="travel-card" style={{ width: "90%", maxWidth: "400px" }}>
+          <div
+            className="travel-card"
+            style={{ width: "90%", maxWidth: "400px" }}
+          >
             <h3>Rate Companion</h3>
-            <select className="custom-search-input" value={rating} onChange={(e) => setRating(e.target.value)}>
+
+            <select
+              className="custom-search-input"
+              value={rating}
+              onChange={(e) => setRating(e.target.value)}
+            >
               <option value="5">5 ⭐⭐⭐⭐⭐</option>
               <option value="4">4 ⭐⭐⭐⭐</option>
               <option value="3">3 ⭐⭐⭐</option>
               <option value="2">2 ⭐⭐</option>
               <option value="1">1 ⭐</option>
             </select>
-            <textarea 
-              className="custom-search-input" 
-              style={{ marginTop: "15px", height: "100px", borderRadius: "15px" }}
-              placeholder="Your comment..." 
-              value={comment} 
-              onChange={(e) => setComment(e.target.value)} 
+
+            <textarea
+              className="custom-search-input"
+              style={{
+                marginTop: "15px",
+                height: "100px",
+                borderRadius: "15px"
+              }}
+              placeholder="Your comment..."
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
             />
-            <div style={{ display: "flex", gap: "10px", marginTop: "20px" }}>
-              <button className="action-btn" onClick={submitRating}>Submit</button>
-              <button className="action-btn secondary-btn" onClick={() => setSelectedRequest(null)}>Cancel</button>
+
+            <div
+              style={{
+                display: "flex",
+                gap: "10px",
+                marginTop: "20px"
+              }}
+            >
+              <button
+                className="action-btn"
+                onClick={submitRating}
+              >
+                Submit
+              </button>
+
+              <button
+                className="action-btn secondary-btn"
+                onClick={() => setSelectedRequest(null)}
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </div>
