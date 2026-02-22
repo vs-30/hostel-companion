@@ -1,27 +1,22 @@
-/* root variables for easy theme switching */
+/* ===== Base Theme Variables ===== */
 :root {
   --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --card-bg: rgba(255, 255, 255, 0.95);
+  --card-bg: rgba(255, 255, 255, 0.9); /* Consistent light card */
   --text-main: #2d3436;
-  --navbar-bg: #ffffff;
   --accent-color: #6c5ce7;
-  --popup-bg: #ffffff;
   --border-color: rgba(0, 0, 0, 0.05);
-  --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  --border-2:white;
 }
 
 [data-theme='dark'] {
-  /* Deeper midnight background for more depth */
-  --bg-gradient: linear-gradient(135deg, #14142b 0%, #0a0a14 100%); 
-  /* Brighter card background to pop against the dark floor */
-  --card-bg: rgba(30, 30, 50, 0.7); 
+  --bg-gradient: linear-gradient(135deg, #14142b 0%, #0a0a14 100%);
+  --card-bg: rgba(30, 30, 50, 0.8); /* Consistent dark card */
   --text-main: #f8f9fa;
-  --navbar-bg: #14142b;
-  --accent-color: #a29bfe; 
-  --popup-bg: #1e1e2e;
+  --accent-color: #a29bfe;
   --border-color: rgba(255, 255, 255, 0.1);
-  --shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+  --border-2:rgba(255, 255, 255, 0.1);
 }
+
 
 body {
   margin: 0;
@@ -53,7 +48,7 @@ body {
 }
 
 .navbar h1 {
-  color: var(--text-main); 
+  color: #f8f9fa;
   padding: 10px 20px;
   font-size: 1.5rem;
   font-weight: 800;
@@ -67,32 +62,11 @@ body {
   padding: 10px 20px;
 }
 
-/* Theme Toggle Button */
-.theme-toggle {
-  background: transparent;
-  border: 2px solid var(--border-color);
-  cursor: pointer;
-  font-size: 1.2rem;
-  color: var(--text-main);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  transition: all 0.3s ease;
-}
-
-.theme-toggle:hover {
-  background: var(--accent-color);
-  color: white;
-}
-
 .nav-item {
   border: 2px solid var(--border-color);
   cursor: pointer;
   background: none;
-  color: var(--text-main);
+  color: white;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -127,46 +101,112 @@ body {
   opacity: 1;
   transform: translateY(0);
 }
-
-/* ===== Feature Grid (Home Page) ===== */
-.home-wrapper {
-  width: 100%;
-  padding-top: 100px;
+.page-content {
+  padding: 120px 0 60px; /* Adjusted for fixed navbar */
+}
+/* ===== Home/Dashboard Layout ===== */
+.home-container {
+    width: 100vw;          /* Force full viewport width */
+    min-height: 100vh;
+    /*padding: 120px 0 60px;*/
+    display: block;        /* Ensure it's not behaving like a flex item */
 }
 
-.features-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 25px;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
+/* Update your Dashboard selector */
+.dashboard {
+    display: flex;
+    flex-direction: column;
+    gap: 40px; 
+    width: 100%;           /* Ensure it tries to take full container width */
+    max-width: 1000px;     /* Match this to the width you want (e.g., 900px or 1000px) */
+    margin: 0 auto;        /* Centers the dashboard within the home-container */
+    padding: 0 40px;       /* Horizontal padding for breathing room */
+    box-sizing: border-box;
 }
 
-.feature-card {
-  background: var(--card-bg);
-  padding: 35px 20px;
-  border-radius: 20px;
-  text-align: center;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border: 1px solid var(--border-color);
-  color: var(--text-main);
+/* Update your Card Section selector */
+.card-section {
+    display: flex;
+    align-items: center;
+    width: 100%;           /* 🔥 This forces the card to fill the dashboard width */
+    padding: 30px 50px;    /* Increased horizontal padding for the 'wide' look */
+    border-radius: 35px;
+    background: var(--card-bg);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 15px 45px rgba(0,0,0,0.12);
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    cursor: pointer;
+    overflow: hidden;
+    opacity: 0; 
+    transform: translateY(30px);
+    color: var(--text-main);
+    box-sizing: border-box; /* Crucial so padding doesn't break the width */
 }
 
-.feature-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 15px 35px rgba(0,0,0,0.15);
-  border-color: var(--accent-color);
+.card-section.is-visible {
+    opacity: 1;
+    transform: translateY(0);
 }
 
-.feature-icon {
-  font-size: 3rem;
-  margin-bottom: 15px;
-  display: block;
+.card-section:hover {
+    transform: translateY(-5px);
+    border-color: var(--accent-color);
+    box-shadow: 0 15px 45px rgba(0, 0, 0, 0.2);
 }
 
+/* Alternating Layout */
+.card-section.image-first { flex-direction: row; }
+.card-section.text-first { flex-direction: row-reverse; }
+
+.card-text {
+    width: 65%;
+    padding: 0 30px;
+}
+
+.card-image-container {
+    width: 35%;
+    display: flex;
+    justify-content: center;
+}
+
+/* Round Cat Images */
+.cat-image {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid var(--accent-color); /* Uniform border color */
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    transition: transform 0.3s;
+}
+
+.card-section:hover .cat-image {
+    transform: scale(1.1) rotate(3deg);
+}
+
+.card-title {
+    font-size: 2.2rem;
+    font-weight: 800;
+    margin-bottom: 8px;
+    color: var(--accent-color); /* Uniform title color */
+}
+
+.card-description {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    opacity: 0.85;
+}
+
+/* Mobile Fix */
+@media (max-width: 768px) {
+    .card-section, .card-section.text-first {
+        flex-direction: column !important;
+        text-align: center;
+    }
+    .card-text { width: 100%; padding: 20px 0; }
+}
 /* ===== Profile Popup (Screenshot Style) ===== */
 /* ===== Small Avatar (Navbar) ===== */
 .avatar-circle {
@@ -229,6 +269,7 @@ body {
 
 .popup-body {
   padding: 15px;
+  background-color:var(--card-bg);
 }
 
 .popup-item {
@@ -262,12 +303,13 @@ body {
 
 /* ===== Login Container (Kept Original) ===== */
 .login-container {
-  background: #ffffff;
+  background:var(--card-bg);
   padding: 2.5rem;
   border-radius: 12px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
   width: 100%;
   max-width: 400px;
+  color:var(--text-main);
   text-align: center;
 }
 .google-btn {

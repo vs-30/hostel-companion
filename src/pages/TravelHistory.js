@@ -136,9 +136,11 @@ function TravelHistory() {
 
   return (
     <div className="travel-container">
-      <h1 className="page-title">Travel Requests</h1>
+      <div className="request-top-row">
+        <h1 className="travel-page-title">Travel Requests</h1>
+      </div>
 
-      <div className="posts-list">
+      <div className="posts-grid">
         {requests.map(request => (
           <div key={request.id} className="travel-card">
             <div className="card-header">

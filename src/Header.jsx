@@ -2,9 +2,9 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState, useRef } from "react";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "./firebase";
-
 import "./styles/style.css";
 import { VscHome, VscSettingsGear, VscColorMode, VscVerified, VscCalendar, VscSignOut } from "react-icons/vsc";
+
 const Header = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
@@ -49,6 +49,11 @@ const Header = () => {
 
   const navItems = [
     {
+      icon: <VscColorMode size={19} />,
+      label: "Theme",
+      onClick: toggleTheme
+    },
+    {
       icon: <VscHome size={19} />,
       label: "Home",
       onClick: () => navigate("/")
@@ -58,6 +63,7 @@ const Header = () => {
       label: "Settings",
       onClick: () => navigate("/settings")
     }
+    
   ];
 
   const userInitial =
@@ -71,15 +77,6 @@ const Header = () => {
       </h1>
 
       <div className="navbar-icons">
-
-        {/* 🌙 Dark Mode Toggle */}
-        <button 
-          className="theme-toggle" 
-          onClick={toggleTheme}
-          title="Toggle Dark/Light Mode"
-        >
-          <VscColorMode />
-        </button>
 
         {/* Navigation */}
         {navItems.map((item) => (

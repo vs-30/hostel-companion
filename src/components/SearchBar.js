@@ -10,7 +10,6 @@ function SearchBar({ setSearch }) {
   };
 
   return (
-    <div className="search-wrapper">
     <input
       type="text"
       placeholder="Search destination..."
@@ -18,7 +17,6 @@ function SearchBar({ setSearch }) {
       onChange={handleChange}
       className="custom-search-input"
     />
-    </div>
   );
 }
 

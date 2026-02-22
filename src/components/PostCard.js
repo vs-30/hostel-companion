@@ -12,6 +12,8 @@ import { db } from "../firebase";
 import { auth } from "../firebase";
 import "../styles/travel.css";
 import { useEffect, useState } from "react";
+import { IoFemaleSharp ,IoMaleSharp} from "react-icons/io5";
+import { CgCalendarDates } from "react-icons/cg";
 
 function PostCard({ post, averageRating }) {
   // 🔥 EXISTING STATE
@@ -96,7 +98,7 @@ function PostCard({ post, averageRating }) {
     <div className="travel-card">
       <div className="card-header">
         <h3 className="destination-title">{post.destination}</h3>
-        <span className="travel-date">📅 {post.date}</span>
+        <span className="travel-date"><CgCalendarDates className="postcard-icon" /> {post.date}</span>
       </div>
 
       <p className="description-text">{post.description}</p>
@@ -107,8 +109,8 @@ function PostCard({ post, averageRating }) {
           <strong>Gender:</strong>{" "}
           {posterGender
             ? posterGender === "male"
-              ? "👨 Male"
-              : "👩 Female"
+              ? <><IoMaleSharp className="postcard-icon" />Male</>
+              : <><IoFemaleSharp className="postcard-icon" />Female</>
             : "Loading..."}
         </p>
         <p>

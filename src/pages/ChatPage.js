@@ -8,7 +8,8 @@ import {
   orderBy,
   serverTimestamp
 } from "firebase/firestore";
-import { db, auth } from "../firebase"; // 🔥 Added auth import
+import { db, auth } from "../firebase";
+import { BiSend } from "react-icons/bi";
 import "../styles/travel.css";
 
 function ChatPage() {
@@ -40,7 +41,7 @@ function ChatPage() {
 
     await addDoc(collection(db, "chats", postId, "messages"), {
       text,
-      senderId: auth.currentUser.uid, // 🔥 Store real UID instead of "User"
+      senderId: auth.currentUser.uid,
       createdAt: serverTimestamp()
     });
 
@@ -48,37 +49,22 @@ function ChatPage() {
   };
 
   return (
+    <div className="travel-container">
     <div className="chat-container">
       <div className="chat-header">
         <h2>Private Chat</h2>
       </div>
 
-      <div className="message-box" style={{ display: "flex", flexDirection: "column", gap: "10px", padding: "10px" }}>
-        {messages.map(msg => {
-          // Check if the message was sent by the current logged-in user
+      <div className="message-box">
+        {messages.map((msg) => {
           const isMe = msg.senderId === auth.currentUser?.uid;
 
           return (
-            <div 
-              key={msg.id} 
-              style={{
-                display: "flex",
-                justifyContent: isMe ? "flex-end" : "flex-start", // 🔥 Right for you, Left for partner
-                width: "100%"
-              }}
+            <div
+              key={msg.id}
+              className={`message-row ${isMe ? "sent-row" : "received-row"}`}
             >
-              <div 
-                className={`msg-bubble ${isMe ? "sent" : "received"}`}
-                style={{
-                  maxWidth: "70%",
-                  padding: "10px 15px",
-                  borderRadius: "15px",
-                  backgroundColor: isMe ? "#007bff" : "#f1f0f0", // Blue vs Grey
-                  color: isMe ? "white" : "black",
-                  borderBottomRightRadius: isMe ? "2px" : "15px",
-                  borderBottomLeftRadius: isMe ? "15px" : "2px",
-                }}
-              >
+              <div className={`msg-bubble ${isMe ? "sent" : "received"}`}>
                 <strong>{isMe ? "You" : "Partner"}:</strong> {msg.text}
               </div>
             </div>
@@ -93,10 +79,12 @@ function ChatPage() {
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="Type a message..."
-          style={{ width: "100%", margin: 0 }}
         />
-        <button type="submit" className="action-btn" style={{ marginTop: 0 }}>Send</button>
+        <button type="submit" className="send-btn">
+          <BiSend />
+        </button>
       </form>
+    </div>
     </div>
   );
 }

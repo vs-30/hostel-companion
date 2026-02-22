@@ -30,14 +30,9 @@ function MyPosts() {
 
   return (
     <div className="travel-container">
-       <nav className="sub-nav">
-          <Link to="/travelbuddy" className="nav-btn">🏠 Home</Link>
-          <Link to="/history" className="nav-btn">📜 History</Link>
-      </nav>
+      <h1 className="travel-page-title">My Travel Posts</h1>
 
-      <h1 className="page-title">My Travel Posts</h1>
-
-      <div className="posts-list">
+      <div className="posts-grid">
         {myPosts.length > 0 ? (
           myPosts.map(post => (
             <PostCard key={post.id} post={post} />
