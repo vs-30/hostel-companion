@@ -85,6 +85,7 @@ function PostCard({ post, averageRating }) {
 
     await addDoc(collection(db, "joinRequests"), {
       postId: post.id,
+      postDate: post.date,
       postDestination: post.destination,
       postOwnerId: post.userId,
       requesterId: auth.currentUser.uid,

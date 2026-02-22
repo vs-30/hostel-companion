@@ -312,6 +312,56 @@ body {
   color:var(--text-main);
   text-align: center;
 }
+/* Grouping labels and selects */
+.form-group {
+  margin-bottom: 1.25rem;
+  justify-content: left;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-label {
+  text-align: left;
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--text-main);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+.form-select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1.5px solid var(--border-2);
+  border-radius: 8px;
+  background-color: var(--card-bg);
+  color: var(--text-main);
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  outline: none;
+  cursor: pointer; /* Removes default arrow for custom look if desired */
+}
+
+.form-select:focus {
+  border-color: var(--accent-color);
+  background-color: var(--card-bg);
+  box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1);
+}
+
+.form-select:disabled {
+  background-color: var(--card-bg);
+  cursor: not-allowed;
+}
+
+/* Mobile Responsive Adjustments */
+@media (max-width: 480px) {
+  .auth-card {
+    padding: 1.5rem;
+  }
+  
+  .auth-title {
+    font-size: 1.25rem;
+  }
+}
 .google-btn {
   display: flex;
   align-items: center;
@@ -321,19 +371,19 @@ body {
   padding: 12px;
   margin-top: 15px;
   border-radius: 12px;
-  background-color: #FFFFFF;
-  color: #286FB4; /* Using your Primary Blue */
+  background-color: var(--card-bg);
+  color: var(--accent-color); /* Using your Primary Blue */
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  border: 1px solid #B0DDE4; /* Using your Soft Blue */
+  border: 1px solid var(--accent-color); /* Using your Soft Blue */
   transition: all 0.3s ease;
   box-shadow: 0 2px 4px rgba(40, 111, 180, 0.05);
 }
 
 .google-btn:hover {
-  background-color: #f8fbfe;
-  border-color: #286FB4;
+  background-color: var(--accent-color);
+  color:var(--card-bg);
   box-shadow: 0 4px 12px rgba(40, 111, 180, 0.12);
   transform: translateY(-1px);
 }

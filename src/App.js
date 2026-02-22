@@ -3,6 +3,7 @@ import Layout from "./Layout";
 import Login from "./auth/Login";
 import Signup from "./auth/Signup";
 import Home  from "./components/Home";
+import Profile from "./UserProfile";
 import SBLayout from "./Sbarlayout";
 import THome from "./pages/TravelHome";
 import ChatPage from "./pages/ChatPage";
@@ -15,6 +16,7 @@ function App() {
     <Routes>
       <Route element={<Layout />}>
       <Route path="/" element={<Home/>} />
+      <Route path ="/user-profile" element={<Profile />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
       <Route element={<SBLayout />}>

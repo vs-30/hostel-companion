@@ -3,7 +3,8 @@ import { useEffect, useState, useRef } from "react";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "./firebase";
 import "./styles/style.css";
-import { VscHome, VscSettingsGear, VscColorMode, VscVerified, VscCalendar, VscSignOut } from "react-icons/vsc";
+import { VscHome, VscColorMode, VscVerified, VscCalendar, VscSignOut } from "react-icons/vsc";
+import { FaUser } from 'react-icons/fa';
 
 const Header = () => {
   const navigate = useNavigate();
@@ -59,9 +60,9 @@ const Header = () => {
       onClick: () => navigate("/")
     },
     {
-      icon: <VscSettingsGear size={19} />,
-      label: "Settings",
-      onClick: () => navigate("/settings")
+      icon: <FaUser size={19} />,
+      label: "Profile",
+      onClick: () => navigate("/user-profile")
     }
     
   ];

@@ -67,7 +67,7 @@ function TravelHistory() {
 
   // 🔹 Reject
   const handleReject = async (id) => {
-    await updateDoc(doc(db, "joinRequests", id), {
+    await updateDoc(doc(db, "joinRequests", id), { 
       status: "rejected"
     });
   };
@@ -87,7 +87,18 @@ function TravelHistory() {
       alert("You are not allowed to access this chat.");
     }
   };
+  const canRateTrip = (request) => {
+  if (!request.postDate) return false;
 
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const [year, month, day] = request.postDate.split("-");
+
+  const tripDate = new Date(year, month - 1, day);
+
+  return today.getTime() >= tripDate.getTime();
+};
   // 🔹 Submit Rating (WITH duplicate prevention)
   const submitRating = async () => {
 
@@ -198,7 +209,7 @@ function TravelHistory() {
 
               {/* ⭐ RATE BUTTON (Only requester can rate after accepted) */}
               {request.status === "accepted" &&
-                auth.currentUser?.uid === request.requesterId && (
+                auth.currentUser?.uid === request.requesterId && canRateTrip(request) && (
                 <button
                   className="action-btn secondary-btn"
                   style={{ marginTop: "10px" }}
@@ -206,6 +217,11 @@ function TravelHistory() {
                 >
                   Rate Companion
                 </button>
+              )}
+              {request.status === "accepted" && auth.currentUser?.uid === request.requesterId && !canRateTrip(request) && (
+                <p style={{ marginTop: "10px", fontSize: "14px", color: "#888" }}>
+                  Rating available after travel date.
+                </p>
               )}
 
             </div>

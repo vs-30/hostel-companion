@@ -1,57 +1,8 @@
-/*import React, { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import "../styles/style.css";
-
-const Home = () => {
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    document.body.style.display = "block";
-    document.body.style.justifyContent = "unset";
-    document.body.style.alignItems = "unset";
-
-    return () => {
-      document.body.style.display = "flex";
-      document.body.style.justifyContent = "center";
-      document.body.style.alignItems = "center";
-    };
-  }, []);
-
-  const features = [
-    { id: "travelbuddy", title: "TravelBuddy", desc: "Find companions for your journey.", icon: "🚗" },
-    { id: "helphub", title: "HelpHub", desc: "Get assistance from the community.", icon: "🤝" },
-    { id: "taskassist", title: "TaskAssist", desc: "Manage and delegate your tasks.", icon: "📋" },
-    { id: "liblive", title: "LibLive", desc: "Real-time library occupancy updates.", icon: "📚" },
-  ];
-
-  return (
-    <div className="home-wrapper">
-      <main className="content-container">
-        <div className="features-grid">
-          {features.map((feature) => (
-            <div
-              key={feature.id}
-              className="feature-card"
-              onClick={() => navigate(`/${feature.id}`)}
-            >
-              <span className="feature-icon">{feature.icon}</span>
-              <h3>{feature.title}</h3>
-              <p>{feature.desc}</p>
-            </div>
-          ))}
-        </div>
-      </main>
-    </div>
-  );
-};
-
-export default Home;*/
 import React, { useEffect } from "react";
 import { useNavigate} from "react-router-dom";
-import "../styles/style.css"; // Ensure you use the new CSS file
+import "../styles/style.css"; 
  
- 
-// Placeholder cat images - replace with your actual URLs!
+
 const catImages = {
     travel: '/images/cat-travel.jpeg',
     peerhelp: '/images/cat-help.jpeg',
@@ -59,34 +10,33 @@ const catImages = {
     library: '/images/cat-lib2.webp'
 };
 
-// Data structure for cards with new color classes - Settings card removed
 const dashboardItems = [
     {
         title: "Travel Buddy",
         description:" Plan trips together and travel safer with verified students heading to the same destination.",
         route: "/travelbuddy",
-        className: "travel-card image-first", // Dark background, Image right
+        className: "travel-card image-first",
         imageSrc: catImages.travel,
     },
     {
         title: "Help Hub",
         description: "Connect with peers who are ready to help. Collaborate and support each other in real-time.",
         route: "/help-hub",
-        className: "peerhelp-card text-first", // White background, Image left
+        className: "peerhelp-card text-first", 
         imageSrc: catImages.peerhelp,
     },
     {
         title: "TaskAssist",
         description: "Request everyday tasks and get them done by people already at the right place.",
         route: "/task-assist",
-        className: "task-card image-first", // White background, Image right
+        className: "task-card image-first", 
         imageSrc: catImages.task,
     },
     {
         title: "LibLive",
         description: "Stay updated with real-time library occupancy and seat availability.",
         route: "/lib-live",
-        className: "library-card text-first", // Dark background, Image left
+        className: "library-card text-first",
         imageSrc: catImages.library,
     },
     
@@ -94,10 +44,7 @@ const dashboardItems = [
 ];
 
 export default function Home() {
-    
-    // Inside your functional component (e.g., Home or Navbar):
 const navigate = useNavigate();
-    // Scroll Reveal Animation (Intersection Observer)
     useEffect(() => {
         const observer = new IntersectionObserver(
             (entries) => {
