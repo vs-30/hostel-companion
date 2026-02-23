@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from "react";
+import {useNavigate} from "react-router-dom"
 import { db } from "./firebase";
 import { auth } from "./firebase";
 import { onAuthStateChanged } from "firebase/auth";
@@ -14,17 +15,28 @@ const LibraryMap = () => {
   const [selectedZone, setSelectedZone] = useState(null);
   const [currentFloor, setCurrentFloor] = useState(1);
   const [currentStudentId, setCurrentStudentId] = useState(null);
+  const [authChecked, setAuthChecked] = useState(false);
+  const navigate = useNavigate();
+
 
 useEffect(() => {
-  const unsubscribe = onAuthStateChanged(auth, (user) => {
-    if (user) {
-      setCurrentStudentId(user.uid);   // 🔥 real student id
-    }
-  });
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setCurrentStudentId(user.uid);
+      } else {
+        setCurrentStudentId(null);
+      }
+      setAuthChecked(true);
+    });
 
-  return () => unsubscribe();
-}, []);
+    return () => unsubscribe();
+  }, []);
 
+useEffect(() => {
+  if (authChecked && !currentStudentId) {
+    navigate("/login");
+  }
+}, [authChecked, currentStudentId, navigate]);
  useEffect(() => {
   const unsubscribe = onSnapshot(collection(db, "seats"), async (snapshot) => {
     const now = Date.now();
@@ -33,7 +45,7 @@ useEffect(() => {
     for (const docSnap of snapshot.docs) {
       let seatData = docSnap.data();
 
-      if (seatData.bookings) {
+      /*if (seatData.bookings) {
         const filtered = seatData.bookings.filter(b => b.to > now);
 
         if (filtered.length !== seatData.bookings.length) {
@@ -43,7 +55,7 @@ useEffect(() => {
         }
 
         seatData.bookings = filtered;
-      }
+      }*/
 
       data[docSnap.id] = seatData;
     }

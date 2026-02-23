@@ -314,7 +314,7 @@
   transition: 0.3s; 
 }
 .seat.mine {
-  background-color: #3498db; /* Blue for your booking */
+  background-color:orange; /* Blue for your booking */
 }
 .seat.free { 
   background: var(--green);

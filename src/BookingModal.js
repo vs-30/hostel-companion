@@ -11,6 +11,7 @@ const BookingModal = ({ seat, onClose, currentStudentId }) => {
   const [extendMinutes, setExtendMinutes] = useState("");
 
   useEffect(() => {
+
   if (!seat) return;
 
   const now = new Date();
@@ -74,7 +75,7 @@ const BookingModal = ({ seat, onClose, currentStudentId }) => {
 
   // ❌ Only between 8 AM and 8 PM
   const startLimit = normalize(convertToTimestamp(selectedDate, "08:00"));
-  const endLimit = normalize(convertToTimestamp(selectedDate, "20:00"));
+  const endLimit = normalize(convertToTimestamp(selectedDate, "22:00"));
 
   if (from < startLimit || to > endLimit) {
     setError("Booking allowed only between 8:00 AM and 8:00 PM.");
@@ -91,31 +92,27 @@ const BookingModal = ({ seat, onClose, currentStudentId }) => {
     return;
   }
 
-  // 🔎 CHECK: Has user already booked ANY seat today?
-  const seatsSnapshot = await getDoc(doc(db, "meta", "allSeatsIndex")); 
-  // If you don't have index, see alternative below
+  // 🔎 CHECK: Has user already booked ANY seat for selected date?
 
-  const todayStart = new Date(selectedDate);
-  todayStart.setHours(0, 0, 0, 0);
-  const todayEnd = new Date(selectedDate);
-  todayEnd.setHours(23, 59, 59, 999);
+const allSeatsRef = await fetchAllSeats();
 
-  const allSeatsRef = await fetchAllSeats(); // we define below
+for (let s of allSeatsRef) {
+  const bookings = s.bookings || [];
 
-  for (let s of allSeatsRef) {
-    const bookings = s.bookings || [];
-    const alreadyBookedToday = bookings.find(
-      (b) =>
-        b.studentId === currentStudentId &&
-        b.from >= todayStart.getTime() &&
-        b.from <= todayEnd.getTime()
+  const alreadyBookedSameDate = bookings.find((b) => {
+    const bookingDate = new Date(b.from).toISOString().split("T")[0];
+
+    return (
+      b.studentId === currentStudentId &&
+      bookingDate === selectedDate
     );
+  });
 
-    if (alreadyBookedToday) {
-      setError("You can book only one seat per day.");
-      return;
-    }
+  if (alreadyBookedSameDate) {
+    setError("You can book only one seat per day.");
+    return;
   }
+}
 
   // 🔎 Check overlap for this seat
   const seatRef = doc(db, "seats", seat.id);
@@ -252,7 +249,9 @@ const currentBooking = seat.bookings?.find(
 const myBooking = seat.bookings?.find(
   (b) => b.studentId === currentStudentId
 );
-
+const activeAndFutureBookings = seat.bookings?.filter(
+  b => b.to > nowTime
+);
 let canCancel = false;
 
 if (myBooking) {
@@ -261,6 +260,7 @@ if (myBooking) {
     canCancel = true;
   }
 }
+
   return (
     <div className="modal-overlay">
       <div className="modal-content">
@@ -269,8 +269,8 @@ if (myBooking) {
         {/* ✅ SHOW ALL BOOKINGS */}
         <h4>Booked Slots:</h4>
         
-        {seat.bookings && seat.bookings.length > 0 ? (
-          seat.bookings.map((b, index) => {
+        {activeAndFutureBookings && activeAndFutureBookings.length > 0 ? (
+          activeAndFutureBookings.map((b, index) => {
             const isMine = b.studentId === currentStudentId;
             return (
               <div key={index} style={{padding: "6px",borderRadius: "6px",marginBottom: "6px",

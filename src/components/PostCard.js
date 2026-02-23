@@ -15,14 +15,11 @@ import { useEffect, useState } from "react";
 import { IoFemaleSharp ,IoMaleSharp} from "react-icons/io5";
 import { CgCalendarDates } from "react-icons/cg";
 
-function PostCard({ post, averageRating }) {
-  // 🔥 EXISTING STATE
-  const [posterGender, setPosterGender] = useState(null);
-  
-  // 🔥 NEW STATE for request tracking
-  const [existingRequest, setExistingRequest] = useState(null);
+function PostCard({ post}) {
 
-  // 1️⃣ Determine if the logged-in user is the one who created this post
+  const [posterGender, setPosterGender] = useState(null);
+  const [existingRequest, setExistingRequest] = useState(null);
+  const [userRating, setUserRating] = useState(null);
   const isMyPost = auth.currentUser?.uid === post.userId;
 
   // 🔥 EXISTING EFFECT: Fetch gender
@@ -33,7 +30,14 @@ function PostCard({ post, averageRating }) {
         const userRef = doc(db, "users", post.userId);
         const userSnap = await getDoc(userRef);
         if (userSnap.exists()) {
-          setPosterGender(userSnap.data().gender);
+          const userData = userSnap.data();
+
+setPosterGender(userData.gender);
+
+setUserRating({
+  average: userData.averageRating || 0,
+  count: userData.ratingCount || 0
+});
         }
       } catch (error) {
         console.log("Error fetching gender:", error);
@@ -114,9 +118,15 @@ function PostCard({ post, averageRating }) {
               : <><IoFemaleSharp className="postcard-icon" />Female</>
             : "Loading..."}
         </p>
-        <p>
-          ⭐ {averageRating ? `${averageRating} / 5` : "No ratings yet"}
-        </p>
+        {userRating && userRating.count > 0 ? (
+  <p>
+    ⭐ {userRating.average} ({userRating.count})
+  </p>
+) : (
+  <p style={{ opacity: 0.5 }}>
+    No ratings yet
+  </p>
+)}
       </div>
 
       {/* 2️⃣ LOGIC: Handle Button Display based on Ownership and Request Status */}
