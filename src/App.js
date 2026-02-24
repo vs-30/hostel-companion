@@ -10,6 +10,11 @@ import ChatPage from "./pages/ChatPage";
 import TravelHistory from "./pages/TravelHistory";
 import MyPosts from "./pages/MyPosts"; 
 import LibraryMap from "./SeatComponent";
+import HelpHubHome from "./pages/HelpHubHome";
+import QuestionDetail from "./pages/QuestionDetail";
+import AnsweredByYou from "./pages/AnsweredByYou";
+import YourPosts from "./pages/YourPosts";
+import CreditsPage from "./pages/CreditsPage";
 
 function App() {
   return (
@@ -27,7 +32,11 @@ function App() {
       <Route path="/myposts" element={<MyPosts />} />
       </Route>
       <Route path="/lib-live" element={<LibraryMap />} />
-      
+      <Route path="/help-hub" element={<HelpHubHome />} />
+      <Route path="/helphub/question/:id" element={<QuestionDetail />} />
+      <Route path="/helphub/answered" element={<AnsweredByYou />} />
+      <Route path="/helphub/credits" element={<CreditsPage />} />
+      <Route path="/helphub/myposts" element={<YourPosts />} />
       </Route>
     </Routes>
   );

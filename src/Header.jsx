@@ -3,8 +3,15 @@ import { useEffect, useState, useRef } from "react";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "./firebase";
 import "./styles/style.css";
-import { VscHome, VscColorMode, VscVerified, VscCalendar, VscSignOut } from "react-icons/vsc";
-import { FaUser } from 'react-icons/fa';
+import {
+  VscHome,
+  VscColorMode,
+  VscVerified,
+  VscCalendar,
+  VscSignOut,
+  VscQuestion
+} from "react-icons/vsc";
+import { FaUser } from "react-icons/fa";
 
 const Header = () => {
   const navigate = useNavigate();
@@ -13,7 +20,7 @@ const Header = () => {
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
   const menuRef = useRef(null);
 
-  // 🔐 Listen for login/logout state
+  // 🔐 Auth listener
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
@@ -21,7 +28,7 @@ const Header = () => {
     return () => unsubscribe();
   }, []);
 
-  // 🌙 Theme switcher
+  // 🌙 Theme switch
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
     localStorage.setItem("theme", theme);
@@ -31,7 +38,7 @@ const Header = () => {
     setTheme(theme === "light" ? "dark" : "light");
   };
 
-  // ❌ Close popup when clicking outside
+  // ❌ Close popup outside click
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
@@ -50,21 +57,25 @@ const Header = () => {
 
   const navItems = [
     {
-      icon: <VscColorMode size={19} />,
-      label: "Theme",
-      onClick: toggleTheme
-    },
-    {
       icon: <VscHome size={19} />,
       label: "Home",
       onClick: () => navigate("/")
     },
     {
+      icon: <VscQuestion size={19} />,
+      label: "Questions",
+      onClick: () => navigate("/questions")
+    },
+    {
       icon: <FaUser size={19} />,
       label: "Profile",
       onClick: () => navigate("/user-profile")
+    },
+    {
+      icon: <VscColorMode size={19} />,
+      label: "Theme",
+      onClick: toggleTheme
     }
-    
   ];
 
   const userInitial =
@@ -73,13 +84,11 @@ const Header = () => {
 
   return (
     <header className="navbar">
-      <h1 className="logo" onClick={() => navigate("/home")}>
+      <h1 className="logo" onClick={() => navigate("/")}>
         Campus Connect
       </h1>
 
       <div className="navbar-icons">
-
-        {/* Navigation */}
         {navItems.map((item) => (
           <button
             key={item.label}
@@ -91,7 +100,6 @@ const Header = () => {
           </button>
         ))}
 
-        {/* 🔁 Auth UI */}
         {!user ? (
           <button
             className="login-btn"
@@ -101,8 +109,6 @@ const Header = () => {
           </button>
         ) : (
           <div className="avatar-wrapper" ref={menuRef}>
-
-            {/* Small Avatar in Navbar */}
             <div
               className="avatar-circle"
               onClick={() => setShowMenu(!showMenu)}
@@ -113,10 +119,18 @@ const Header = () => {
             {showMenu && (
               <div className="account-popup">
                 <div className="popup-header">
-                  <div className="popup-avatar-large">{userInitial}</div>
-                  <h3 style={{ margin: 0 }}>{user.displayName || "User"}</h3>
-                  <small style={{ opacity: 0.9 }}>{user.email}</small>
-                  <p style={{ fontSize: '10px', marginTop: '5px', opacity: 0.8 }}>SASTRA University</p>
+                  <div className="popup-avatar-large">
+                    {userInitial}
+                  </div>
+                  <h3 style={{ margin: 0 }}>
+                    {user.displayName || "User"}
+                  </h3>
+                  <small style={{ opacity: 0.9 }}>
+                    {user.email}
+                  </small>
+                  <p style={{ fontSize: "10px", marginTop: "5px", opacity: 0.8 }}>
+                    SASTRA University
+                  </p>
                 </div>
 
                 <div className="popup-body">
@@ -126,15 +140,19 @@ const Header = () => {
                   </div>
                   <div className="popup-item">
                     <VscCalendar size={18} />
-                    <span>Logged in: {new Date().toLocaleDateString()}</span>
+                    <span>
+                      Logged in: {new Date().toLocaleDateString()}
+                    </span>
                   </div>
-                  <button className="popup-logout" onClick={handleLogout}>
+                  <button
+                    className="popup-logout"
+                    onClick={handleLogout}
+                  >
                     <VscSignOut /> Sign Out
                   </button>
                 </div>
               </div>
             )}
-
           </div>
         )}
       </div>
