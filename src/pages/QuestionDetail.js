@@ -52,9 +52,8 @@ const QuestionDetail = () => {
       return;
     }
 
-    // Check if question already has approved answer
     if (answers.some((a) => a.isApproved)) {
-      alert("This question already has an approved answer. You cannot answer.");
+      alert("This question already has an approved answer.");
       return;
     }
 
@@ -73,36 +72,55 @@ const QuestionDetail = () => {
 
   const handleApprove = async (answer) => {
     if (auth.currentUser.uid !== question.userId) {
-      alert("Only the question poster can approve an answer.");
+      alert("Only the question owner can approve.");
       return;
     }
 
-    const answerRef = doc(db, "answers", answer.id);
-    await updateDoc(answerRef, { isApproved: true });
-
     const subjectCode = question.courseCode || "GENERAL";
 
-    // Award points to approved user
-    const approvedUserRef = doc(db, "users", answer.answeredBy);
-    const approvedUserSnap = await getDoc(approvedUserRef);
-    const approvedUserData = approvedUserSnap.data() || {};
-    let updatedCredits = { ...(approvedUserData.credits || {}) };
-    if (!updatedCredits[subjectCode]) updatedCredits[subjectCode] = 0;
-    updatedCredits[subjectCode] += 50; // approved answer gets 50
-    await updateDoc(approvedUserRef, { credits: updatedCredits });
+    // Mark answer as approved
+    await updateDoc(doc(db, "answers", answer.id), {
+      isApproved: true,
+    });
 
-    // Award 10 points to others who answered
+    // 1️⃣ Give 50 credits to approved answer user
+    const approvedUserRef = doc(db, "users", answer.answeredBy);
+    const approvedSnap = await getDoc(approvedUserRef);
+    const approvedData = approvedSnap.data() || {};
+    let approvedCredits = { ...(approvedData.credits || {}) };
+
+    if (!approvedCredits[subjectCode]) approvedCredits[subjectCode] = 0;
+    approvedCredits[subjectCode] += 50;
+
+    await updateDoc(approvedUserRef, { credits: approvedCredits });
+
+    // 2️⃣ Give 10 credits to other answerers
     for (let ans of answers) {
       if (ans.id !== answer.id) {
         const otherRef = doc(db, "users", ans.answeredBy);
         const otherSnap = await getDoc(otherRef);
         const otherData = otherSnap.data() || {};
         let otherCredits = { ...(otherData.credits || {}) };
+
         if (!otherCredits[subjectCode]) otherCredits[subjectCode] = 0;
         otherCredits[subjectCode] += 10;
+
         await updateDoc(otherRef, { credits: otherCredits });
       }
     }
+
+    // 3️⃣ Give 5 credits to question owner (for approving)
+    const ownerRef = doc(db, "users", question.userId);
+    const ownerSnap = await getDoc(ownerRef);
+    const ownerData = ownerSnap.data() || {};
+    let ownerCredits = { ...(ownerData.credits || {}) };
+
+    if (!ownerCredits[subjectCode]) ownerCredits[subjectCode] = 0;
+    ownerCredits[subjectCode] += 5;
+
+    await updateDoc(ownerRef, { credits: ownerCredits });
+
+    alert("Answer approved & credits awarded!");
   };
 
   return (
@@ -112,7 +130,6 @@ const QuestionDetail = () => {
         <small>Asked by: {question?.name || "Unknown"}</small>
       </div>
 
-      {/* Answer Box */}
       {auth.currentUser?.uid !== question?.userId &&
         !answers.some((a) => a.isApproved) && (
           <div className="travel-card">
@@ -135,18 +152,19 @@ const QuestionDetail = () => {
             <p>{ans.answerText}</p>
             <small>— {ans.answeredByName}</small>
 
-            {question?.userId === auth.currentUser?.uid && !ans.isApproved && (
-              <button
-                className="action-btn"
-                onClick={() => handleApprove(ans)}
-              >
-                Approve Answer
-              </button>
-            )}
+            {question?.userId === auth.currentUser?.uid &&
+              !ans.isApproved && (
+                <button
+                  className="action-btn"
+                  onClick={() => handleApprove(ans)}
+                >
+                  Approve Answer
+                </button>
+              )}
 
             {ans.isApproved && (
               <span style={{ color: "green", fontWeight: "bold" }}>
-                Approved!
+                Approved ✓
               </span>
             )}
           </div>

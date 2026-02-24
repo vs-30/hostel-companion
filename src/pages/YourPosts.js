@@ -16,7 +16,6 @@ const YourPosts = () => {
   const [answers, setAnswers] = useState([]);
 
   useEffect(() => {
-    // Fetch your questions
     const q = query(
       collection(db, "questions"),
       where("userId", "==", auth.currentUser.uid)
@@ -29,7 +28,6 @@ const YourPosts = () => {
       })));
     });
 
-    // Fetch all answers
     const unsubA = onSnapshot(collection(db, "answers"), (snapshot) => {
       setAnswers(snapshot.docs.map((doc) => ({
         id: doc.id,
@@ -44,40 +42,62 @@ const YourPosts = () => {
   }, []);
 
   const handleApprove = async (question, approvedAnswer) => {
-    const answerRef = doc(db, "answers", approvedAnswer.id);
-    await updateDoc(answerRef, { isApproved: true });
+    if (approvedAnswer.isApproved) return;
 
     const subjectCode = question.courseCode || "GENERAL";
 
-    // Award points to approved answerer
-    const approvedUserRef = doc(db, "users", approvedAnswer.answeredBy);
-    const approvedSnap = await getDoc(approvedUserRef);
+    // Mark approved
+    await updateDoc(doc(db, "answers", approvedAnswer.id), {
+      isApproved: true,
+    });
+
+    // ===============================
+    // 1️⃣ Approved answerer +50
+    // ===============================
+    const approvedRef = doc(db, "users", approvedAnswer.answeredBy);
+    const approvedSnap = await getDoc(approvedRef);
     const approvedData = approvedSnap.data() || {};
+
     let approvedCredits = { ...(approvedData.credits || {}) };
     if (!approvedCredits[subjectCode]) approvedCredits[subjectCode] = 0;
-    if (approvedCredits[subjectCode] + 50 <= 500) {
-      approvedCredits[subjectCode] += 50;
-      await updateDoc(approvedUserRef, { credits: approvedCredits });
-    }
 
-    // Award 10 points to other answerers
+    approvedCredits[subjectCode] += 50;
+
+    await updateDoc(approvedRef, { credits: approvedCredits });
+
+    // ===============================
+    // 2️⃣ Other answerers +10
+    // ===============================
     const otherAnswers = answers.filter(
       (a) => a.questionId === question.id && a.id !== approvedAnswer.id
     );
 
-    for (let a of otherAnswers) {
-      const userRef = doc(db, "users", a.answeredBy);
+    for (let ans of otherAnswers) {
+      const userRef = doc(db, "users", ans.answeredBy);
       const userSnap = await getDoc(userRef);
       const userData = userSnap.data() || {};
+
       let credits = { ...(userData.credits || {}) };
       if (!credits[subjectCode]) credits[subjectCode] = 0;
 
-      // Only add if under 500
-      if (credits[subjectCode] + 10 <= 500) {
-        credits[subjectCode] += 10;
-        await updateDoc(userRef, { credits });
-      }
+      credits[subjectCode] += 10;
+
+      await updateDoc(userRef, { credits });
     }
+
+    // ===============================
+    // 3️⃣ Question owner +5
+    // ===============================
+    const ownerRef = doc(db, "users", question.userId);
+    const ownerSnap = await getDoc(ownerRef);
+    const ownerData = ownerSnap.data() || {};
+
+    let ownerCredits = { ...(ownerData.credits || {}) };
+    if (!ownerCredits[subjectCode]) ownerCredits[subjectCode] = 0;
+
+    ownerCredits[subjectCode] += 5;
+
+    await updateDoc(ownerRef, { credits: ownerCredits });
   };
 
   return (
@@ -98,16 +118,14 @@ const YourPosts = () => {
 
               {answers
                 .filter((a) => a.questionId === q.id)
-                .map((ans, i) => (
-                  <div key={i} style={{ marginBottom: "10px" }}>
+                .map((ans) => (
+                  <div key={ans.id} style={{ marginBottom: "10px" }}>
                     <p>{ans.answerText}</p>
                     <small>— {ans.answeredByName}</small>
 
-                    {/* Approve button only for question owner & if not approved */}
                     {q.userId === auth.currentUser.uid && !ans.isApproved && (
                       <button
                         className="action-btn"
-                        style={{ marginLeft: "10px" }}
                         onClick={() => handleApprove(q, ans)}
                       >
                         Approve Answer
@@ -115,13 +133,7 @@ const YourPosts = () => {
                     )}
 
                     {ans.isApproved && (
-                      <span
-                        style={{
-                          color: "green",
-                          fontWeight: "bold",
-                          marginLeft: "10px",
-                        }}
-                      >
+                      <span style={{ color: "green", fontWeight: "bold" }}>
                         Approved!
                       </span>
                     )}
@@ -130,7 +142,7 @@ const YourPosts = () => {
 
               {approvedExists && (
                 <div style={{ marginTop: "10px", fontStyle: "italic" }}>
-                  This question has an approved answer. No more answers allowed.
+                  This question has an approved answer.
                 </div>
               )}
             </div>
