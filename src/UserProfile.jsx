@@ -3,6 +3,7 @@ import "./styles/Profile.css";
 import { auth, db } from "./firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
+import { degreeData } from "./data/degreeData"; // <-- import from separate file
 
 const Profile = () => {
   const [loading, setLoading] = useState(true);
@@ -14,142 +15,12 @@ const Profile = () => {
     name: "",
     gender: "",
     degree: "",
-    year: "",
+    semester: "",
     branch: "",
   });
 
-  const degreeData = {
-  "B.Tech": {
-    years: ["1", "2", "3", "4"],
-    branches: [
-      "Bioengineering",
-      "Bioinformatics",
-      "Biotechnology",
-      "Chemical Engineering",
-      "Civil Engineering",
-      "Computer Science and Engineering",
-      "Computer Science and Engineering (Artificial Intelligence & Data Science)",
-      "Computer Science and Engineering (Cyber Security & Blockchain Technology)",
-      "Computer Science and Engineering (IoT & Automation)",
-      "Computer Science and Engineering (Networks)",
-      "Information and Communication Technology",
-      "Information Technology",
-      "Electrical and Electronics Engineering",
-      "Electrical and Electronics Engineering(Smart Grid and Electric Vehicles)",
-      "Electronics and Communication Engineering",
-      "Electronics and Communication Engineering(Cyber Physical Systems)",
-      "Electronics & Instrumentation Engineering",
-      "Robotics & Artificial Intelligence",
-      "Electronics Enginerring(VLSI Design&Technology)",
-      "Aerospace Engineering",
-      "Mechanical Engineering",
-      "Mechanical Engineering(Digital Manufacturing)",
-      "Mechatronics"
-    ]
-  },
-  "M.Tech": {
-    years: ["1", "2"],
-    branches: [
-      "Aerospace Enginerring",
-      "Digital Manufacturing",
-      "Artificial Intelligence and Data Science",
-      "Computer Science and Engineering",
-      "Cyber Security",
-      "VLSI",
-      "Artificial Intelligence & Robotics",
-      "Power & Energy Systems",
-      "Wireless Smart Communication",
-      "Big Data Biology",
-      "Indusrial Biotechnology",
-      "Medical Nanotechnology",
-      "Structural Engineering"
-    ]
-  },
-  "M.Tech 5-year Integrated": {
-    years: ["1", "2"],
-    branches: [
-      "Integrated Biotechnology",
-      "Integrated Medical Nanotechnology",
-    ]
-  },
-  "M.Sc": {
-    years: ["1", "2"],
-    branches: [
-      "Biotechnology",
-      "Bioinformatics",
-      "Chemistry",
-      "Physics",
-      "Data Science",
-    ]
-  },
-  "MBA": {
-    years: ["1", "2"],
-    branches: ["Management"]
-  },
-  "MCA": {
-    years: ["1", "2"],
-    branches: ["Computer Applications"]
-  },
-  "BFA": {
-    years: ["1", "2", "3", "4"],
-    branches: [
-      "Music",
-      "Bharatanatyam",
-    ]
-  },
-  "MFA": {
-    years: ["1", "2"],
-    branches: [ "Bharatanatyam" ]
-  },
-  "MA": {
-    years: ["1", "2"],
-    branches: [
-      "Divyaprabandhandam",
-      "Sanskrit",
-    ]
-  },
-  "MA (5 Year Integrated)": {
-    years: ["1", "2", "3", "4", "5"],
-    branches: [
-      "Sanskrit",
-    ]
-  },
-  "B. Optom": {
-    years: ["1", "2", "3", "4"],
-    branches: ["B.Optom [Collaboration with Elite School of Optometry, Sankara Nethralaya, Chennai]"]
-  },
-  "M. Optom": {
-    years: ["1", "2"],
-    branches: ["M.Optom [Collaboration with Elite School of Optometry, Sankara Nethralaya, Chennai]"]
-  },
-  "Law (5 Year Integrated)": {
-    years: ["1", "2", "3", "4", "5"],
-    branches: [
-      "BA LLB [2022-27] / [2023-28] / [2024-29]",
-      "BBA LLB [2022-27] / [2023-28] / [2024-29]",
-      "B.Com LLB [2022-27] / [2023-28] / [2024-29]"
-    ]
-  },
-  "M. Sc (5 Year Integrated)": {
-    years: ["1", "2", "3", "4", "5"],
-    branches: [
-      "Integrated Biotechnology",
-      "Integtrated Physics",
-      "Integrated Chemistry",
-      "Integrated Mathematics",
-      "Integrated Mathematics and Computing",
-      "Integrated Data Science"
-    ]
-  },
-  "B.Ed. (Integrated)": {
-    years: ["1", "2", "3", "4"],
-    branches: [
-      "Physics",
-      "Maths",
-      "English"
-    ]
-  },
-};
+  const [subjects, setSubjects] = useState([]);
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user) {
@@ -167,10 +38,10 @@ const Profile = () => {
       if (snap.exists()) {
         const data = snap.data();
         setForm({
-          name: googleName,  // Always from Google
+          name: googleName,
           gender: data.gender || "",
           degree: data.degree || "",
-          year: data.year || "",
+          semester: data.semester || "",
           branch: data.branch || "",
         });
       } else {
@@ -178,7 +49,7 @@ const Profile = () => {
           name: googleName,
           gender: "",
           degree: "",
-          year: "",
+          semester: "",
           branch: "",
         });
       }
@@ -189,21 +60,55 @@ const Profile = () => {
     return () => unsubscribe();
   }, []);
 
+  // 🔥 Update subjects when degree / branch / semester changes
+  useEffect(() => {
+    if (!form.degree || !form.branch || !form.semester) {
+      setSubjects([]);
+      return;
+    }
+
+    const degree = degreeData[form.degree];
+    if (!degree) return;
+
+    let semesterSubjects = [];
+
+    // Add COMMON subjects (B.Tech Sem 1 & 2)
+    if (
+      form.degree === "B.Tech" &&
+      degree.branches["COMMON"]?.semesters[form.semester]
+    ) {
+      semesterSubjects = [
+        ...degree.branches["COMMON"].semesters[form.semester],
+      ];
+    }
+
+    // Add branch-specific subjects
+    const branchData = degree.branches[form.branch];
+    if (branchData?.semesters[form.semester]) {
+      semesterSubjects = [
+        ...semesterSubjects,
+        ...branchData.semesters[form.semester],
+      ];
+    }
+
+    setSubjects(semesterSubjects);
+  }, [form.degree, form.branch, form.semester]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
 
     if (name === "degree") {
-      setForm((prev) => ({
-        ...prev,
+      setForm({
+        ...form,
         degree: value,
-        year: "",
-        branch: ""
-      }));
+        semester: "",
+        branch: "",
+      });
     } else {
-      setForm((prev) => ({
-        ...prev,
-        [name]: value
-      }));
+      setForm({
+        ...form,
+        [name]: value,
+      });
     }
   };
 
@@ -215,13 +120,17 @@ const Profile = () => {
     setMessage("");
 
     try {
-      await setDoc(userRef, {
-        gender: form.gender,
-        degree: form.degree,
-        year: form.year,
-        branch: form.branch,
-        updatedAt: new Date(),
-      }, { merge: true });
+      await setDoc(
+        userRef,
+        {
+          gender: form.gender,
+          degree: form.degree,
+          semester: form.semester,
+          branch: form.branch,
+          updatedAt: new Date(),
+        },
+        { merge: true }
+      );
 
       setMessage("Profile updated successfully.");
       setTimeout(() => setMessage(""), 3000);
@@ -241,7 +150,7 @@ const Profile = () => {
 
       <form onSubmit={handleSave} className="settings-form">
 
-        {/* Name (Auto from Google) */}
+        {/* Name */}
         <label>
           Name
           <input value={form.name} disabled />
@@ -268,31 +177,49 @@ const Profile = () => {
           </select>
         </label>
 
-        {/* Year */}
-        {form.degree && (
-          <label>
-            Year
-            <select name="year" value={form.year} onChange={handleChange}>
-              <option value="">Select Year</option>
-              {degreeData[form.degree].years.map((yr) => (
-                <option key={yr} value={yr}>{yr}</option>
-              ))}
-            </select>
-          </label>
-        )}
-
         {/* Branch */}
         {form.degree && (
           <label>
             Branch
             <select name="branch" value={form.branch} onChange={handleChange}>
               <option value="">Select Branch</option>
-              {degreeData[form.degree].branches.map((br) => (
-                <option key={br} value={br}>{br}</option>
+              {Object.keys(degreeData[form.degree].branches)
+                .filter((b) => b !== "COMMON")
+                .map((br) => (
+                  <option key={br} value={br}>{br}</option>
+                ))}
+            </select>
+          </label>
+        )}
+
+        {/* Semester */}
+        {form.degree && (
+          <label>
+            Semester
+            <select name="semester" value={form.semester} onChange={handleChange}>
+              <option value="">Select Semester</option>
+              {degreeData[form.degree].semesters.map((sem) => (
+                <option key={sem} value={sem}>
+                  Semester {sem}
+                </option>
               ))}
             </select>
           </label>
         )}
+        {subjects.length > 0 && (
+        <div className="subjects-container">
+         {/*<h3>Subjects{form.semester}</h3>*/}
+         <label> Subjects
+          <ul className="subjects-display">
+            {subjects.map((sub, index) => (
+              <li key={index}>
+                <strong>{sub.code}</strong> – {sub.name}
+              </li>
+            ))}
+          </ul>
+          </label>
+        </div>
+      )}
 
         <button type="submit" disabled={saving}>
           {saving ? "Saving..." : "Update Profile"}
@@ -300,6 +227,9 @@ const Profile = () => {
 
         {message && <p className="success-message">{message}</p>}
       </form>
+
+      {/* 🔥 SUBJECT DISPLAY (NON EDITABLE) */}
+      
     </div>
   );
 };

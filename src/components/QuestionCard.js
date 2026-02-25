@@ -8,7 +8,9 @@ const QuestionCard = ({ question }) => {
   return (
     <div className="travel-card">
       <div className="card-header">
-        <h3 className="destination-title">{question.courseCode}</h3>
+        <h3 className="destination-title">
+  {question.courseCode} - {question.courseName}
+</h3>
       </div>
 
       <p>{question.text}</p>

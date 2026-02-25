@@ -2,34 +2,24 @@ import { useState } from "react";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { db, auth } from "../firebase";
 import { FaCamera } from "react-icons/fa";
-import { degreeData } from "../data/degreeData";
 
-const CreateQuestion = () => {
+const CreateQuestion = ({ selectedCourse }) => {
   const [questionText, setQuestionText] = useState("");
-  const [courseCode, setCourseCode] = useState("");
-  const [visibleToYears, setVisibleToYears] = useState([]);
-  const [degree, setDegree] = useState("");
-  const [year, setYear] = useState("");
-  const [branch, setBranch] = useState("");
+
   const handleSubmit = async () => {
-    if (!questionText || !courseCode) {
-      alert("Fill required fields");
+    if (!questionText || !selectedCourse) {
+      alert("Please select a subject and write your question.");
       return;
     }
 
     await addDoc(collection(db, "questions"), {
-  text: questionText,
-  courseCode: courseCode,
-  degree: degree,
-  year: year,
-  branch: branch,
-  createdAt: serverTimestamp(),
-  userId: auth.currentUser.uid
-});
+      text: questionText,
+      courseCode: selectedCourse.split(" - ")[0].trim(), // 🔥 Only this matters now
+      createdAt: serverTimestamp(),
+      userId: auth.currentUser.uid
+    });
 
     setQuestionText("");
-    setCourseCode("");
-    setVisibleToYears([]);
     alert("Question posted!");
   };
 
@@ -41,58 +31,14 @@ const CreateQuestion = () => {
         onChange={(e) => setQuestionText(e.target.value)}
       />
 
-      <input
-        type="text"
-        placeholder="Enter Course Code"
-        value={courseCode}
-        onChange={(e) => setCourseCode(e.target.value)}
-      />
+      {/* Show Selected Subject */}
+      {selectedCourse && (
+        <p style={{ marginTop: "10px", fontWeight: "bold" }}>
+          Posting under: {selectedCourse}
+        </p>
+      )}
 
-      {/* Degree */}
-<div className="form-group">
-  <label>Degree</label>
-  <select
-    value={degree}
-    onChange={(e) => {
-      setDegree(e.target.value);
-      setYear("");
-      setBranch("");
-    }}
-  >
-    <option value="">Select Degree</option>
-    {Object.keys(degreeData).map((deg) => (
-      <option key={deg} value={deg}>{deg}</option>
-    ))}
-  </select>
-</div>
-
-{/* Year */}
-{degree && (
-  <div className="form-group">
-    <label>Year</label>
-    <select value={year} onChange={(e) => setYear(e.target.value)}>
-      <option value="">Select Year</option>
-      {degreeData[degree].years.map((yr) => (
-        <option key={yr} value={yr}>{yr}</option>
-      ))}
-    </select>
-  </div>
-)}
-
-{/* Branch */}
-{degree && (
-  <div className="form-group">
-    <label>Branch</label>
-    <select value={branch} onChange={(e) => setBranch(e.target.value)}>
-      <option value="">Select Branch</option>
-      {degreeData[degree].branches.map((br) => (
-        <option key={br} value={br}>{br}</option>
-      ))}
-    </select>
-  </div>
-)}
-
-      {/* Camera UI only */}
+      {/* Camera UI (future feature) */}
       <div
         style={{
           marginTop: "15px",

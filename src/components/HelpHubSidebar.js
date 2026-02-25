@@ -2,12 +2,14 @@ import { Link, useLocation } from "react-router-dom";
 import { MdHistory } from "react-icons/md";
 import { BiAddToQueue } from "react-icons/bi";
 import { GiPayMoney } from "react-icons/gi";
+import { TbZoomQuestionFilled } from "react-icons/tb";
 import "../styles/travel.css";
 
 function HelpHubSidebar() {
   const location = useLocation();
 
   const navItems = [
+    { path:"/help-hub",icon :<TbZoomQuestionFilled/>,label:"Explore"},
     { path: "/helphub/answered", icon: <MdHistory />, label: "Answered By You" },
     { path: "/helphub/myposts", icon: <BiAddToQueue />, label: "Your Posts" },
     { path: "/helphub/credits", icon: <GiPayMoney />, label: "Credits" },

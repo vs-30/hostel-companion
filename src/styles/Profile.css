@@ -89,7 +89,10 @@
   cursor: not-allowed;
   transform: none;
 }
-
+.subjects-display
+{
+  color:var(--text-main);
+}
 .success-message {
   margin-top: 8px;
   font-weight: 600;

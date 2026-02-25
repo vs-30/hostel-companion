@@ -9,7 +9,6 @@ import {
   VscVerified,
   VscCalendar,
   VscSignOut,
-  VscQuestion
 } from "react-icons/vsc";
 import { FaUser } from "react-icons/fa";
 
@@ -61,11 +60,7 @@ const Header = () => {
       label: "Home",
       onClick: () => navigate("/")
     },
-    {
-      icon: <VscQuestion size={19} />,
-      label: "Questions",
-      onClick: () => navigate("/questions")
-    },
+  
     {
       icon: <FaUser size={19} />,
       label: "Profile",

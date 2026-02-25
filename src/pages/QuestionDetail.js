@@ -71,57 +71,56 @@ const QuestionDetail = () => {
   };
 
   const handleApprove = async (answer) => {
-    if (auth.currentUser.uid !== question.userId) {
-      alert("Only the question owner can approve.");
-      return;
-    }
+  if (auth.currentUser.uid !== question.userId) {
+    alert("Only the question owner can approve.");
+    return;
+  }
 
-    const subjectCode = question.courseCode || "GENERAL";
+  const subjectCode = question.courseCode;
 
-    // Mark answer as approved
-    await updateDoc(doc(db, "answers", answer.id), {
-      isApproved: true,
+  // 1️⃣ Mark answer as approved
+  await updateDoc(doc(db, "answers", answer.id), {
+    isApproved: true,
+  });
+
+  // 🔹 Helper function to update credits inside enrolledCourses
+  const addCreditsToUser = async (userId, points) => {
+    const userRef = doc(db, "users", userId);
+    const snap = await getDoc(userRef);
+    const data = snap.data();
+
+    if (!data?.enrolledCourses) return;
+
+    const updatedCourses = data.enrolledCourses.map((course) => {
+      if (course.code === subjectCode) {
+        return {
+          ...course,
+          credits: (course.credits || 0) + points,
+        };
+      }
+      return course;
     });
 
-    // 1️⃣ Give 50 credits to approved answer user
-    const approvedUserRef = doc(db, "users", answer.answeredBy);
-    const approvedSnap = await getDoc(approvedUserRef);
-    const approvedData = approvedSnap.data() || {};
-    let approvedCredits = { ...(approvedData.credits || {}) };
-
-    if (!approvedCredits[subjectCode]) approvedCredits[subjectCode] = 0;
-    approvedCredits[subjectCode] += 50;
-
-    await updateDoc(approvedUserRef, { credits: approvedCredits });
-
-    // 2️⃣ Give 10 credits to other answerers
-    for (let ans of answers) {
-      if (ans.id !== answer.id) {
-        const otherRef = doc(db, "users", ans.answeredBy);
-        const otherSnap = await getDoc(otherRef);
-        const otherData = otherSnap.data() || {};
-        let otherCredits = { ...(otherData.credits || {}) };
-
-        if (!otherCredits[subjectCode]) otherCredits[subjectCode] = 0;
-        otherCredits[subjectCode] += 10;
-
-        await updateDoc(otherRef, { credits: otherCredits });
-      }
-    }
-
-    // 3️⃣ Give 5 credits to question owner (for approving)
-    const ownerRef = doc(db, "users", question.userId);
-    const ownerSnap = await getDoc(ownerRef);
-    const ownerData = ownerSnap.data() || {};
-    let ownerCredits = { ...(ownerData.credits || {}) };
-
-    if (!ownerCredits[subjectCode]) ownerCredits[subjectCode] = 0;
-    ownerCredits[subjectCode] += 5;
-
-    await updateDoc(ownerRef, { credits: ownerCredits });
-
-    alert("Answer approved & credits awarded!");
+    await updateDoc(userRef, {
+      enrolledCourses: updatedCourses,
+    });
   };
+
+  // 2️⃣ 50 credits to approved answer user
+  await addCreditsToUser(answer.answeredBy, 50);
+
+  // 3️⃣ 10 credits to other answerers
+  for (let ans of answers) {
+    if (ans.id !== answer.id) {
+      await addCreditsToUser(ans.answeredBy, 10);
+    }
+  }
+
+  // 4️⃣ 5 credits to question owner
+  await addCreditsToUser(question.userId, 5);
+
+  alert("Answer approved & credits awarded!");
+};
 
   return (
     <div className="side-page-content">

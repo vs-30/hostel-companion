@@ -10,13 +10,13 @@ const Signup = () => {
   const [loading, setLoading] = useState(false);
   const [gender, setGender] = useState("");
   const [degree, setDegree] = useState("");
-  const [year, setYear] = useState("");
+  const [semester, setSemester] = useState("");
   const [branch, setBranch] = useState("");
   const navigate = useNavigate();
 
   const signupWithGoogle = async () => {
     try {
-      if (!gender || !degree || !year || !branch) {
+      if (!gender || !degree || !branch || !semester) {
         alert("Please complete all fields before signing up.");
         return;
       }
@@ -46,14 +46,19 @@ const Signup = () => {
         navigate("/login");
         return;
       }
-
+      const semesterCourses =degreeData[degree].branches[branch].semesters[semester];
       await setDoc(userRef, {
         name: user.displayName,
         email: user.email,
         gender,
         degree,
-        year,
         branch,
+        semester,
+        enrolledCourses: semesterCourses.map(course => ({
+          code: course.code,
+          name: course.name,
+          credits: 0
+      })),
         createdAt: new Date(),
       });
 
@@ -94,7 +99,7 @@ const Signup = () => {
           value={degree}
           onChange={(e) => {
             setDegree(e.target.value);
-            setYear("");
+            setSemester("");
             setBranch("");
           }}
         >
@@ -104,23 +109,6 @@ const Signup = () => {
           ))}
         </select>
       </div>
-
-      {/* Year */}
-      {degree && (
-        <div className="form-group">
-          <label className="form-label">Year</label>
-          <select
-            className="form-select"
-            value={year}
-            onChange={(e) => setYear(e.target.value)}
-          >
-            <option value="">Select Year</option>
-            {degreeData[degree].years.map((yr) => (
-              <option key={yr} value={yr}>{yr}</option>
-            ))}
-          </select>
-        </div>
-      )}
 
       {/* Branch */}
       {degree && (
@@ -132,13 +120,31 @@ const Signup = () => {
             onChange={(e) => setBranch(e.target.value)}
           >
             <option value="">Select Branch</option>
-            {degreeData[degree].branches.map((br) => (
+            {Object.keys(degreeData[degree].branches).map((br) => (
               <option key={br} value={br}>{br}</option>
             ))}
           </select>
         </div>
       )}
-
+      {degree && branch && (
+  <div className="form-group">
+    <label className="form-label">Semester</label>
+    <select
+      className="form-select"
+      value={semester}
+      onChange={(e) => setSemester(e.target.value)}
+    >
+      <option value="">Select Semester</option>
+      {Object.keys(
+        degreeData[degree].branches[branch].semesters
+      ).map((sem) => (
+        <option key={sem} value={sem}>
+          Semester {sem}
+        </option>
+      ))}
+    </select>
+  </div>
+)}
       <button
         className="google-btn"
         onClick={signupWithGoogle}
