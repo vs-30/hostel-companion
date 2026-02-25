@@ -15,7 +15,7 @@ import QuestionDetail from "./pages/QuestionDetail";
 import AnsweredByYou from "./pages/AnsweredByYou";
 import YourPosts from "./pages/YourPosts";
 import CreditsPage from "./pages/CreditsPage";
-
+import TaskAssist from "./pages/TaskAssist";
 function App() {
   return (
     <Routes>
@@ -27,7 +27,7 @@ function App() {
       <Route element={<SBLayout />}>
       <Route path="/travelbuddy" element={<THome />} />
       <Route path="/chat/:postId" element={<ChatPage />} />
-
+      <Route path="/task-assist/*" element={<TaskAssist />} />
       <Route path="/history" element={<TravelHistory />} />
       <Route path="/myposts" element={<MyPosts />} />
       </Route>
