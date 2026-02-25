@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { collection, addDoc, serverTimestamp, doc, getDoc } from "firebase/firestore";
 import { db, auth } from "../firebase";
-import "../styles/travel.css";
+import "../styles/create.css";
 
 function CreatePost() {
   const [isOpen, setIsOpen] = useState(false);

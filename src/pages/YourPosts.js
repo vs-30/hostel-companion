@@ -10,29 +10,37 @@ import {
 } from "firebase/firestore";
 import { db, auth } from "../firebase";
 import HelpHubSidebar from "../components/HelpHubSidebar";
+import "../styles/helphub.css";
 
 const YourPosts = () => {
   const [questions, setQuestions] = useState([]);
   const [answers, setAnswers] = useState([]);
+  const [approvedAnswers, setApprovedAnswers] = useState({});
 
   useEffect(() => {
+    if (!auth.currentUser) return;
+
     const q = query(
       collection(db, "questions"),
       where("userId", "==", auth.currentUser.uid)
     );
 
     const unsubQ = onSnapshot(q, (snapshot) => {
-      setQuestions(snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })));
+      setQuestions(
+        snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }))
+      );
     });
 
     const unsubA = onSnapshot(collection(db, "answers"), (snapshot) => {
-      setAnswers(snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })));
+      setAnswers(
+        snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }))
+      );
     });
 
     return () => {
@@ -41,63 +49,54 @@ const YourPosts = () => {
     };
   }, []);
 
+
   const handleApprove = async (question, approvedAnswer) => {
     if (approvedAnswer.isApproved) return;
 
     const subjectCode = question.courseCode || "GENERAL";
 
-    // Mark approved
     await updateDoc(doc(db, "answers", approvedAnswer.id), {
       isApproved: true,
     });
+    setApprovedAnswers((prev) => ({
+    ...prev,
+    [approvedAnswer.id]: true,
+  }));
+    const addCreditsToUser = async (userId, points) => {
+      const userRef = doc(db, "users", userId);
+      const snap = await getDoc(userRef);
 
-    // ===============================
-    // 1️⃣ Approved answerer +50
-    // ===============================
-    const approvedRef = doc(db, "users", approvedAnswer.answeredBy);
-    const approvedSnap = await getDoc(approvedRef);
-    const approvedData = approvedSnap.data() || {};
+      if (!snap.exists()) return;
 
-    let approvedCredits = { ...(approvedData.credits || {}) };
-    if (!approvedCredits[subjectCode]) approvedCredits[subjectCode] = 0;
+      const data = snap.data();
 
-    approvedCredits[subjectCode] += 50;
+      if (!data?.enrolledCourses) return;
 
-    await updateDoc(approvedRef, { credits: approvedCredits });
+      const updatedCourses = data.enrolledCourses.map((course) => {
+        if (course.code === subjectCode) {
+          return {
+            ...course,
+            credits: (course.credits || 0) + points,
+          };
+        }
+        return course;
+      });
 
-    // ===============================
-    // 2️⃣ Other answerers +10
-    // ===============================
+      await updateDoc(userRef, {
+        enrolledCourses: updatedCourses,
+      });
+    };
+
+    await addCreditsToUser(approvedAnswer.answeredBy, 50);
     const otherAnswers = answers.filter(
       (a) => a.questionId === question.id && a.id !== approvedAnswer.id
     );
 
     for (let ans of otherAnswers) {
-      const userRef = doc(db, "users", ans.answeredBy);
-      const userSnap = await getDoc(userRef);
-      const userData = userSnap.data() || {};
-
-      let credits = { ...(userData.credits || {}) };
-      if (!credits[subjectCode]) credits[subjectCode] = 0;
-
-      credits[subjectCode] += 10;
-
-      await updateDoc(userRef, { credits });
+      await addCreditsToUser(ans.answeredBy, 10);
     }
-
     // ===============================
-    // 3️⃣ Question owner +5
-    // ===============================
-    const ownerRef = doc(db, "users", question.userId);
-    const ownerSnap = await getDoc(ownerRef);
-    const ownerData = ownerSnap.data() || {};
-
-    let ownerCredits = { ...(ownerData.credits || {}) };
-    if (!ownerCredits[subjectCode]) ownerCredits[subjectCode] = 0;
-
-    ownerCredits[subjectCode] += 5;
-
-    await updateDoc(ownerRef, { credits: ownerCredits });
+    await addCreditsToUser(question.userId, 5);
   };
 
   return (
@@ -106,48 +105,58 @@ const YourPosts = () => {
       <div className="side-page-content">
         <h2 className="travel-page-title">Your Posts</h2>
 
-        {questions.map((q) => {
-          const approvedExists = answers.some(
-            (a) => a.questionId === q.id && a.isApproved
-          );
+        <div className="questions-grid">
+          {questions.map((q) => {
+            const approvedExists = answers.some(
+              (a) => a.questionId === q.id && a.isApproved
+            );
 
-          return (
-            <div key={q.id} className="travel-card">
-              <h3>{q.text}</h3>
-              <h4>Answers:</h4>
+            return (
+              <div key={q.id} className="question-card">
+                <h3>{q.courseCode}</h3>
+                <strong className="question">{q.text}</strong>
+                <p>Answers:</p>
+{answers
+  .filter((a) => a.questionId === q.id)
+  .map((ans) => (
+    <div key={ans.id} className="answer-card">
+      <p className="answer-text">{ans.answerText}</p>
+      <small className="answered-by">— {ans.answeredBy}</small>
 
-              {answers
-                .filter((a) => a.questionId === q.id)
-                .map((ans) => (
-                  <div key={ans.id} style={{ marginBottom: "10px" }}>
-                    <p>{ans.answerText}</p>
-                    <small>— {ans.answeredByName}</small>
+      <div className="button-container">
+        {q.userId === auth.currentUser.uid && !ans.isApproved && !approvedAnswers[ans.id] && (
+          <button
+            className="approve-btn"
+            onClick={() => handleApprove(q, ans)}
+          >
+            Approve Answer
+          </button>
+        )}
 
-                    {q.userId === auth.currentUser.uid && !ans.isApproved && (
-                      <button
-                        className="action-btn"
-                        onClick={() => handleApprove(q, ans)}
-                      >
-                        Approve Answer
-                      </button>
-                    )}
+        {(ans.isApproved || approvedAnswers[ans.id]) && (
+          <button className="approve-btn approved" disabled>
+            Approved!
+          </button>
+        )}
+      </div>
+    </div>
+  ))}
 
-                    {ans.isApproved && (
-                      <span style={{ color: "green", fontWeight: "bold" }}>
-                        Approved!
-                      </span>
-                    )}
+                {approvedExists && (
+                  <div
+                    style={{
+                      marginTop: "10px",
+                      fontStyle: "italic",
+                      color: "#666",
+                    }}
+                  >
+                    This question has an approved answer.
                   </div>
-                ))}
-
-              {approvedExists && (
-                <div style={{ marginTop: "10px", fontStyle: "italic" }}>
-                  This question has an approved answer.
-                </div>
-              )}
-            </div>
-          );
-        })}
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
     </>
   );

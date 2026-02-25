@@ -37,34 +37,27 @@ useEffect(() => {
     navigate("/login");
   }
 }, [authChecked, currentStudentId, navigate]);
- useEffect(() => {
-  const unsubscribe = onSnapshot(collection(db, "seats"), async (snapshot) => {
-    const now = Date.now();
+useEffect(() => {
+  const unsubscribe = onSnapshot(collection(db, "seatBookings"), (snapshot) => {
     const data = {};
+    const now = Date.now(); // Get fresh time on every DB change
 
-    for (const docSnap of snapshot.docs) {
-      let seatData = docSnap.data();
-
-      /*if (seatData.bookings) {
-        const filtered = seatData.bookings.filter(b => b.to > now);
-
-        if (filtered.length !== seatData.bookings.length) {
-          await updateDoc(doc(db, "seats", docSnap.id), {
-            bookings: filtered
-          });
+    snapshot.forEach((docSnap) => {
+      const booking = docSnap.data();
+      // Keep only future or currently active bookings
+      if (booking.to > now) {
+        if (!data[booking.seatId]) {
+          data[booking.seatId] = { bookings: [] };
         }
-
-        seatData.bookings = filtered;
-      }*/
-
-      data[docSnap.id] = seatData;
-    }
-
+        data[booking.seatId].bookings.push(booking);
+      }
+    });
     setFirebaseSeats(data);
   });
-
   return () => unsubscribe();
 }, []);
+
+  
 
   const getSeatStatus = (id) => {
   const data = firebaseSeats[id];

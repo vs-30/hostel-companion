@@ -1,10 +1,10 @@
 // errands/components/CreateErrand.jsx
 import { useState } from "react";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
-import { db, auth } from "../../firebase";
+import { db, auth } from "../firebase";
 import { IoAdd, IoClose } from "react-icons/io5";
 import { MdDelete } from "react-icons/md";
-
+import "../styles/create.css"
 export default function CreateErrand() {
   const [showModal, setShowModal] = useState(false);
   const [taskType, setTaskType] = useState("Canteen");
@@ -84,24 +84,12 @@ export default function CreateErrand() {
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div style={{ 
-              display: "flex", 
-              justifyContent: "space-between", 
-              alignItems: "center",
-              marginBottom: "20px"
-            }}>
+            <div style>
               <h2 style={{ color: "var(--text-main)", margin: 0 }}>
                 Create Errand
               </h2>
               <button 
                 onClick={() => setShowModal(false)}
-                style={{
-                  background: "none",
-                  border: "none",
-                  color: "var(--text-secondary)",
-                  fontSize: "24px",
-                  cursor: "pointer"
-                }}
               >
                 <IoClose />
               </button>
@@ -114,7 +102,7 @@ export default function CreateErrand() {
                 <select
                   value={taskType}
                   onChange={(e) => setTaskType(e.target.value)}
-                  className="custom-search-input"
+                  className="modal-select"
                   style={{ padding: "12px" }}
                   required
                 >
@@ -157,14 +145,6 @@ export default function CreateErrand() {
                       <button
                         type="button"
                         onClick={() => handleRemoveItem(index)}
-                        style={{
-                          background: "none",
-                          border: "none",
-                          color: "#ef4444",
-                          fontSize: "20px",
-                          cursor: "pointer",
-                          padding: "5px"
-                        }}
                       >
                         <MdDelete />
                       </button>
@@ -175,30 +155,13 @@ export default function CreateErrand() {
                 <button
                   type="button"
                   onClick={handleAddItem}
-                  style={{
-                    background: "none",
-                    border: "1px dashed var(--accent-color)",
-                    color: "var(--accent-color)",
-                    padding: "8px",
-                    borderRadius: "8px",
-                    width: "100%",
-                    cursor: "pointer",
-                    marginTop: "5px"
-                  }}
                 >
                   + Add Another Item
                 </button>
               </div>
 
               {/* Total Items Display */}
-              <div style={{
-                background: "var(--card-bg)",
-                padding: "10px",
-                borderRadius: "8px",
-                marginBottom: "15px",
-                textAlign: "center",
-                border: "1px solid var(--border-color)"
-              }}>
+              <div style>
                 <strong>Total Items: {calculateTotalItems()}</strong>
                 <br />
                 <small style={{ color: "var(--text-secondary)" }}>
@@ -211,12 +174,6 @@ export default function CreateErrand() {
                 <label className="input-label">Additional Notes (Optional)</label>
                 <textarea
                   className="custom-search-input"
-                  style={{ 
-                    minHeight: "80px",
-                    padding: "12px",
-                    borderRadius: "12px",
-                    resize: "vertical"
-                  }}
                   placeholder="Any specific instructions? (e.g., 'Extra spicy', 'Brand name', etc.)"
                   value={shopNote}
                   onChange={(e) => setShopNote(e.target.value)}

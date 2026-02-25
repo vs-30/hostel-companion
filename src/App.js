@@ -15,7 +15,10 @@ import QuestionDetail from "./pages/QuestionDetail";
 import AnsweredByYou from "./pages/AnsweredByYou";
 import YourPosts from "./pages/YourPosts";
 import CreditsPage from "./pages/CreditsPage";
-import TaskAssist from "./pages/TaskAssist";
+import TASBLayout from "./errands/TAsidebarlayout";
+import ErrandFeed from "./errands/ErrandFeed";
+import Shops from "./errands/Shops";
+import Requests from "./errands/Requests";
 function App() {
   return (
     <Routes>
@@ -27,9 +30,13 @@ function App() {
       <Route element={<SBLayout />}>
       <Route path="/travelbuddy" element={<THome />} />
       <Route path="/chat/:postId" element={<ChatPage />} />
-      <Route path="/task-assist/*" element={<TaskAssist />} />
       <Route path="/history" element={<TravelHistory />} />
       <Route path="/myposts" element={<MyPosts />} />
+      </Route>
+      <Route element={<TASBLayout/>}>
+      <Route path="/task-assist" element={<ErrandFeed />} />
+      <Route path="/shops" element={<Shops/>}/>
+      <Route path="/requests" element={<Requests/>}/>
       </Route>
       <Route path="/lib-live" element={<LibraryMap />} />
       <Route path="/help-hub" element={<HelpHubHome />} />

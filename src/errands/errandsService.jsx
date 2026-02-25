@@ -1,6 +1,6 @@
 // errands/services/errandsService.jsx
 import { doc, updateDoc, increment } from "firebase/firestore";
-import { db } from "../../firebase";
+import { db } from "../firebase";
 
 // Credits per item delivered
 export const STORE_RULES = {

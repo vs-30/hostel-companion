@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
-import { db, auth } from "../../firebase";
+import { db, auth } from "../firebase";
 import ErrandCard from "./ErrandCard";
 
 export default function Requests() {

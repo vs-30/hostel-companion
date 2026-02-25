@@ -15,7 +15,6 @@ import { db, auth } from "../firebase";
 
 const QuestionDetail = () => {
   const { id } = useParams();
-
   const [question, setQuestion] = useState(null);
   const [answers, setAnswers] = useState([]);
   const [answerText, setAnswerText] = useState("");
@@ -62,7 +61,7 @@ const QuestionDetail = () => {
       questionText: question?.text,
       answerText: answerText.trim(),
       answeredBy: auth.currentUser.uid,
-      answeredByName: auth.currentUser.displayName,
+      courseCode: question.courseCode,
       createdAt: serverTimestamp(),
       isApproved: false,
     });
@@ -149,7 +148,7 @@ const QuestionDetail = () => {
         {answers.map((ans) => (
           <div key={ans.id} className="travel-card">
             <p>{ans.answerText}</p>
-            <small>— {ans.answeredByName}</small>
+            <small>Answered by{ans.answeredBy}</small>
 
             {question?.userId === auth.currentUser?.uid &&
               !ans.isApproved && (

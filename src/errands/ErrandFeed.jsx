@@ -10,7 +10,7 @@ import {
   runTransaction,
   increment,
 } from "firebase/firestore";
-import { db, auth } from "../../firebase";
+import { db, auth } from "../firebase";
 import ErrandCard from "./ErrandCard";
 
 export default function ErrandFeed() {

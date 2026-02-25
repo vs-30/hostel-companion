@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { doc, onSnapshot } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
-import { db, auth } from "../../firebase";
+import { db, auth } from "../firebase";
 
 export default function Shops() {
   const [userId, setUserId] = useState(null);

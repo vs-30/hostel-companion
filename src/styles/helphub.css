@@ -1,0 +1,351 @@
+.root
+{
+    --light-bg::#f3f0ff;
+}
+[data-theme='dark']
+{
+    --light-bg:rgba(0, 0, 0, 0.15);
+}
+/*Home page*/
+/* Header Section */
+.hub-header {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 30px;
+  margin-bottom: 40px; /* SPACE BETWEEN FILTER & CARDS */
+  gap: 20px;
+}
+
+/* Filter Container */
+.filter-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--card-bg);
+  padding: 10px 20px;
+  border-radius: 50px;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow);
+}
+
+/* Icon */
+.filter-icon {
+  color: var(--accent-color);
+  font-size: 1.4rem;
+}
+
+/* Select Dropdown */
+.filter-select {
+  background: var(--card-bg);
+  border: none;
+  outline: none;
+  color: var(--text-main);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Optional: remove ugly default dropdown arrow (modern look) */
+.filter-select {
+  appearance: none;
+}
+.questions-grid {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* centers cards */
+  gap: 25px;
+  width: 100%;
+}
+
+/*Question Card*/
+
+.question-card {
+  width: clamp(600px, 60vw, 900px);  /* SAME BEHAVIOR AS SEARCH BAR */
+  background: var(--card-bg);
+  backdrop-filter: blur(12px);
+  border-radius: 24px;
+  padding: 24px;
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-sizing: border-box;
+  transition: 0.3s ease;
+}
+
+.answers-section,
+.answer-box {
+  width: 100%;
+}
+
+.answer-box textarea {
+  width: 100%;
+  background: var(--light-bg);
+  box-sizing: border-box;
+}
+
+.question-card:hover {
+  transform: translateY(-3px);
+}
+
+/* Question text */
+.question-text {
+  color:var(--text-main);
+  margin: 15px 0;
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
+
+/* Buttons row */
+.card-actions {
+  display: flex;
+  justify-content: space-between; /* EXTREME CORNERS */
+  align-items: center;
+  margin-top: 15px;
+}
+
+/* Buttons */
+.view-btn,
+.answer-btn,
+.submit-btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.2s ease;
+}
+
+.view-btn {
+  background: transparent;
+  color: var(--accent-color);
+}
+
+.answer-btn {
+  background: var(--accent-color);
+  color: white;
+}
+
+.submit-btn {
+  margin-top: 10px;
+  background: var(--accent-color);
+  color: white;
+}
+
+/* Answers Section */
+.answers-section {
+  margin-top: 20px;
+  border-top: 1px solid var(--accent-color);
+  padding-top: 15px;
+}
+
+/* Individual Answer */
+.answer-card {
+  padding: 15px;
+  margin-bottom: 10px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 10px;
+}
+
+/* Answer box */
+.answer-box textarea {
+  width: 100%;
+  min-height: 80px;
+  border-radius: 10px;
+  padding: 10px;
+  border: 1px solid var(--accent-color);
+  background: transparent;
+  color: var(--text-main);
+  resize: none;
+}
+/*Your Posts page*/
+.question
+{
+  color: var(--accent-color);
+}
+.answer{
+  color:var(--text-main)
+}
+/* Answer card container */
+.answer-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  margin-bottom: 15px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  min-height: 120px; /* optional: ensures button is at bottom even for short answers */
+  position: relative;
+}
+
+/* Answer text */
+.answer-text {
+  margin-bottom: 8px;
+}
+
+/* Author */
+.answered-by {
+  font-size: 0.85rem;
+  color: #555;
+  margin-bottom: 10px;
+}
+
+/* Button container aligns button to bottom-right */
+.button-container {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: auto; /* pushes button to bottom */
+}
+
+/* Approve button */
+.approve-btn {
+  background-color: var(--accent-color);
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.3s;
+}
+
+.approve-btn:hover:not(:disabled) {
+  transform: scale(1);
+}
+
+/* Approved state */
+.approve-btn.approved {
+  background-color:var(--green);
+  color: white;
+  cursor: not-allowed;
+}
+/*Credit Page*/
+.credits-container {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  width: 95%; /* Makes cards wider */
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.wide-credits-card {
+  background:var(--card-bg);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 25px;
+  transition: transform 0.2s;
+}
+
+.card-main-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.highlight-code {
+  font-size: 2rem;
+  color: var(--accent-color); /* Use your purple/blue accent color */
+  margin: 0;
+  letter-spacing: -1px;
+}
+
+.course-name-sub {
+  color:var(--text-main);
+  font-size: 1.1rem;
+  margin-top: 5px;
+}
+
+.points-badge {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background: var(--light-bg);
+  padding: 12px 20px;
+  border-radius: 15px;
+  border: 1px solid var(--accent-color);
+}
+
+.coin-icon {
+  font-size: 1.8rem;
+  color: #ffd700; /* Gold coin color */
+}
+
+.points-number {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--text-main);
+}
+
+.points-label {
+  font-size: 0.75rem;
+  color: var(--accent-color);
+  text-transform: uppercase;
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin: 20px 0;
+}
+
+.assignments-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.assignment-box {
+  background: var(--light-bg);
+  padding: 15px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 1px solid var(--accent-color);
+}
+
+.assignment-status {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 500;
+  color: var(--text-main);
+}
+
+.status-icon.success { color: #4caf50; }
+.status-icon.locked { color: var(--text-main); }
+
+.claim-btn {
+  background: var(--accent-color);
+  color: white;
+  border: none;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.claim-btn.disabled {
+  background: #333;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.unlocked-text {
+  text-align: center;
+  color: #4caf50;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+  .question-card {
+    width: 95%;
+  }
+}
