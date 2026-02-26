@@ -1,6 +1,13 @@
 import { CgTime } from "react-icons/cg";
 
-export default function ErrandCard({ errand, onAccept, currentUser }) {
+export default function ErrandCard({
+  errand,
+  onAccept,
+  onComplete,
+  currentUser,
+}) {
+  const creditAmount = (errand.totalItems || 1) * 10;
+
   return (
     <div className="travel-card">
       <div className="card-header">
@@ -12,19 +19,32 @@ export default function ErrandCard({ errand, onAccept, currentUser }) {
 
       <p>{errand.description}</p>
 
+      {/* Accept Button */}
       {currentUser?.uid !== errand.requesterId &&
         errand.status === "pending" && (
           <button
             className="action-btn"
             onClick={() => onAccept(errand)}
           >
-            Accept (+10 Credits)
+            Accept (+{creditAmount} Credits)
           </button>
         )}
 
-      {currentUser?.uid === errand.requesterId && (
-        <div className="owner-status">✨ Your Request</div>
-      )}
+      {/* Complete Button (Only Requester Sees This) */}
+      {currentUser?.uid === errand.requesterId &&
+        errand.status === "accepted" && (
+          <button
+            className="action-btn"
+            onClick={() => onComplete(errand)}
+          >
+            Mark Completed ✅
+          </button>
+        )}
+
+      {currentUser?.uid === errand.requesterId &&
+        errand.status === "pending" && (
+          <div className="owner-status">✨ Your Request</div>
+        )}
     </div>
   );
 }

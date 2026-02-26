@@ -4,7 +4,6 @@ import {
   addDoc,
   serverTimestamp,
   query,
-  where,
   onSnapshot,
   doc,
   runTransaction,
@@ -12,6 +11,7 @@ import {
 } from "firebase/firestore";
 import { db, auth } from "../firebase";
 import ErrandCard from "./ErrandCard";
+import CreateErrand from "./CreateErrand";
 
 export default function ErrandFeed() {
   const [tasks, setTasks] = useState([]);
@@ -79,46 +79,80 @@ export default function ErrandFeed() {
 
   /* ---------------- ACCEPT TASK ---------------- */
   const handleAccept = async (task) => {
-    const taskRef = doc(db, "tasks", task.id);
-    const userRef = doc(db, "users", auth.currentUser.uid);
+  const taskRef = doc(db, "tasks", task.id);
 
-    try {
-      await runTransaction(db, async (tx) => {
-        const snap = await tx.get(taskRef);
+  try {
+    await runTransaction(db, async (tx) => {
+      const snap = await tx.get(taskRef);
 
-        if (!snap.exists()) throw new Error("Missing");
-        if (snap.data().status !== "pending")
-          throw new Error("Taken");
+      if (!snap.exists()) throw new Error("Missing");
+      if (snap.data().status !== "pending")
+        throw new Error("Already Taken");
 
-        tx.update(taskRef, {
-          status: "accepted",
-          acceptedBy: auth.currentUser.uid,
-        });
-
-        tx.update(userRef, {
-          [`shopCredits.${task.type}`]: increment(10),
-        });
+      tx.update(taskRef, {
+        status: "accepted",
+        acceptedBy: auth.currentUser.uid,
       });
+    });
 
-      await addDoc(collection(db, "creditLogs"), {
-        userId: auth.currentUser.uid,
-        amount: 10,
-        shop: task.type,
-        type: "earn",
-        timestamp: serverTimestamp(),
-      });
+  } catch (err) {
+    console.error(err);
+    alert("Too late ⚡");
+  }
+};
+const handleComplete = async (task) => {
+  const taskRef = doc(db, "tasks", task.id);
+  const userRef = doc(db, "users", task.acceptedBy);
 
-    } catch (err) {
-      console.error(err);
-      alert("Too late ⚡");
-    }
+  const shopMap = {
+    Canteen: "canteen",
+    Pharmacy: "pharmacy",
+    "Xerox Shop": "xerox",
+    Stationary: "stationary",
   };
 
+  const shopKey = shopMap[task.type];
+  const creditAmount = (task.totalItems || 1) * 10;
+
+  try {
+    await runTransaction(db, async (tx) => {
+      const snap = await tx.get(taskRef);
+
+      if (!snap.exists()) throw new Error("Missing");
+      if (snap.data().status !== "accepted")
+        throw new Error("Not eligible");
+
+      // 1️⃣ Mark completed
+      tx.update(taskRef, {
+        status: "completed",
+        completedAt: serverTimestamp(),
+      });
+
+      // 2️⃣ Add credits to accepter
+      tx.update(userRef, {
+        [`taskCredits.${shopKey}`]: increment(creditAmount),
+      });
+    });
+
+    // 3️⃣ Log credits
+    await addDoc(collection(db, "creditLogs"), {
+      userId: task.acceptedBy,
+      amount: creditAmount,
+      shop: shopKey,
+      type: "earn",
+      timestamp: serverTimestamp(),
+    });
+
+  } catch (err) {
+    console.error(err);
+    alert("Something went wrong ⚠️");
+  }
+};
   return (
     <div>
-      <h2 className="travel-page-title">Errand Feed </h2>
+      <h2 className="travel-page-title">Errand Feed</h2>
 
-      {/* Search */}
+      Search 
       <div className="search-wrapper">
         <input
           type="text"
@@ -143,18 +177,20 @@ export default function ErrandFeed() {
       </div>
 
       {/* Feed */}
-      {filteredTasks.length === 0 && <p>No errands found ✨</p>}
+      {filteredTasks.length === 0 && <p style={{color:"var(--text-main)"}}>No errands found ✨</p>}
 
       {filteredTasks.map((task) => (
-        <ErrandCard
-          key={task.id}
-          errand={task}
-          onAccept={handleAccept}
-          currentUser={auth.currentUser}
-        />
-      ))}
+  <ErrandCard
+    key={task.id}
+    errand={task}
+    onAccept={handleAccept}
+    onComplete={handleComplete}
+    currentUser={auth.currentUser}
+  />
+))}
+      <CreateErrand/>
 
-      {/* Floating Action Button */}
+      {/* Floating Action Button 
       <button
         className="fab-button"
         onClick={() => setShowModal(true)}
@@ -162,7 +198,7 @@ export default function ErrandFeed() {
         +
       </button>
 
-      {/* Modal */}
+      {/* Modal 
       {showModal && (
         <div className="modal-overlay">
           <div className="modal-content travel-card create-post-form">
@@ -207,7 +243,7 @@ export default function ErrandFeed() {
             </form>
           </div>
         </div>
-      )}
+      )}*/}
     </div>
   );
 }

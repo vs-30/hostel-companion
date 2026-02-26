@@ -6,7 +6,7 @@ import { db, auth } from "../firebase";
 
 export default function Shops() {
   const [userId, setUserId] = useState(null);
-  const [credits, setCredits] = useState({});
+  const [taskCredits, setTaskCredits] = useState({});
 
   const shops = [
     { name: "Canteen", key: "canteen", icon: "🍔", description: "Food & Beverages" },
@@ -24,40 +24,56 @@ export default function Shops() {
 
   useEffect(() => {
     if (!userId) return;
+
     const unsub = onSnapshot(doc(db, "users", userId), (snapshot) => {
       if (snapshot.exists()) {
-        setCredits(snapshot.data().credits || {});
+        setTaskCredits(snapshot.data().taskCredits || {});
       }
     });
+
     return () => unsub();
   }, [userId]);
 
   return (
     <>
       <h1 className="travel-page-title">Available Shops</h1>
-      
+
       <div className="posts-grid">
         {shops.map((shop) => (
           <div key={shop.key} className="travel-card">
             <div style={{ fontSize: "3rem", textAlign: "center", marginBottom: "10px" }}>
               {shop.icon}
             </div>
-            <h3 style={{ textAlign: "center", margin: "10px 0" }}>{shop.name}</h3>
+
+            <h3 style={{ textAlign: "center", margin: "10px 0" }}>
+              {shop.name}
+            </h3>
+
             <p style={{ textAlign: "center", color: "var(--text-secondary)" }}>
               {shop.description}
             </p>
-            <div style={{ 
-              background: "var(--accent-color)", 
-              color: "white",
-              padding: "8px",
-              borderRadius: "8px",
-              textAlign: "center",
-              fontWeight: "bold",
-              margin: "10px 0"
-            }}>
-              Your Credits: {credits[shop.key] || 0} pts
+
+            <div
+              style={{
+                background: "var(--accent-color)",
+                color: "white",
+                padding: "8px",
+                borderRadius: "8px",
+                textAlign: "center",
+                fontWeight: "bold",
+                margin: "10px 0"
+              }}
+            >
+              Your Credits: {taskCredits[shop.key] || 0} pts
             </div>
-            <p style={{ fontSize: "0.9rem", color: "var(--text-secondary)", textAlign: "center" }}>
+
+            <p
+              style={{
+                fontSize: "0.9rem",
+                color: "var(--text-secondary)",
+                textAlign: "center"
+              }}
+            >
               Earn 10 credits per delivery
             </p>
           </div>

@@ -84,11 +84,11 @@ export default function CreateErrand() {
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div style>
+            <div>
               <h2 style={{ color: "var(--text-main)", margin: 0 }}>
                 Create Errand
               </h2>
-              <button 
+              <button className="modal-close"
                 onClick={() => setShowModal(false)}
               >
                 <IoClose />
@@ -161,7 +161,7 @@ export default function CreateErrand() {
               </div>
 
               {/* Total Items Display */}
-              <div style>
+              <div>
                 <strong>Total Items: {calculateTotalItems()}</strong>
                 <br />
                 <small style={{ color: "var(--text-secondary)" }}>
