@@ -1,10 +1,10 @@
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {useNavigate} from "react-router-dom"
 import { db } from "./firebase";
 import { auth } from "./firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import { collection, onSnapshot,updateDoc,doc } from "firebase/firestore";
+import { collection, onSnapshot} from "firebase/firestore";
 import { MdBatteryChargingFull } from 'react-icons/md';
 import BookingModal from "./BookingModal";
 import "./styles/seatStyle.css";

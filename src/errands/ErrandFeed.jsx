@@ -18,12 +18,6 @@ export default function ErrandFeed() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
 
-  // Modal state
-  const [showModal, setShowModal] = useState(false);
-  const [description, setDescription] = useState("");
-  const [taskType, setTaskType] = useState("Canteen");
-
-  /* ---------------- FETCH TASKS ---------------- */
   useEffect(() => {
     const q = query(collection(db, "tasks"));
 
@@ -53,31 +47,6 @@ export default function ErrandFeed() {
     });
   }, [tasks, search, filter]);
 
-  /* ---------------- POST TASK ---------------- */
-  const handlePost = async (e) => {
-    e.preventDefault();
-
-    if (!description.trim()) return;
-
-    try {
-      await addDoc(collection(db, "tasks"), {
-        type: taskType,
-        description,
-        requesterId: auth.currentUser.uid,
-        requesterName: auth.currentUser.displayName || "Hosteller",
-        status: "pending",
-        createdAt: serverTimestamp(),
-      });
-
-      setDescription("");
-      setShowModal(false);
-    } catch (err) {
-      console.error(err);
-      alert("Could not post 😵");
-    }
-  };
-
-  /* ---------------- ACCEPT TASK ---------------- */
   const handleAccept = async (task) => {
   const taskRef = doc(db, "tasks", task.id);
 
@@ -189,61 +158,6 @@ const handleComplete = async (task) => {
   />
 ))}
       <CreateErrand/>
-
-      {/* Floating Action Button 
-      <button
-        className="fab-button"
-        onClick={() => setShowModal(true)}
-      >
-        +
-      </button>
-
-      {/* Modal 
-      {showModal && (
-        <div className="modal-overlay">
-          <div className="modal-content travel-card create-post-form">
-            <div className="modal-header">
-              <h3>Create Errand</h3>
-              <button
-                className="close-modal"
-                onClick={() => setShowModal(false)}
-              >
-                ×
-              </button>
-            </div>
-
-            <form onSubmit={handlePost}>
-              <div className="input-group">
-                <label className="input-label">Select Shop</label>
-                <select
-                  value={taskType}
-                  onChange={(e) => setTaskType(e.target.value)}
-                >
-                  <option>Canteen</option>
-                  <option>Pharmacy</option>
-                  <option>Xerox Shop</option>
-                  <option>Stationary</option>
-                </select>
-              </div>
-
-              <div className="input-group">
-                <label className="input-label">What do you need?</label>
-                <textarea
-                  className="textarea-fixed"
-                  placeholder="Describe your order..."
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  required
-                />
-              </div>
-
-              <button className="action-btn" type="submit">
-                Post Request
-              </button>
-            </form>
-          </div>
-        </div>
-      )}*/}
     </div>
   );
 }

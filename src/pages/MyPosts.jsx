@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { auth, db } from "../firebase";
 import PostCard from "../components/PostCard";
-import { Link } from "react-router-dom";
 import "../styles/travel.css";
 
 function MyPosts() {

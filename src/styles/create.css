@@ -76,6 +76,7 @@
     background: var(--light-bg);
     resize: none;
     padding-top: 12px;
+    color: var(--text-main);
 }
 .image-upload-placeholder{
     padding: 10px;

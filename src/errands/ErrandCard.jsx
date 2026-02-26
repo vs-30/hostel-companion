@@ -1,4 +1,4 @@
-import { CgTime } from "react-icons/cg";
+
 
 export default function ErrandCard({
   errand,
