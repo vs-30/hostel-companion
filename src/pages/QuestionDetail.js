@@ -44,41 +44,41 @@ const QuestionDetail = () => {
   }, [id]);
 
   const handleAnswer = async () => {
-    if (!answerText.trim()) return;
+  if (!answerText.trim()) return;
 
-    if (auth.currentUser.uid === question.userId) {
-      alert("You cannot answer your own question.");
-      return;
-    }
+  if (auth.currentUser.uid === question.userId) {
+    alert("You cannot answer your own question.");
+    return;
+  }
 
-    if (answers.some((a) => a.isApproved)) {
-      alert("This question already has an approved answer.");
-      return;
-    }
+  if (answers.some((a) => a.isApproved)) {
+    alert("This question already has an approved answer.");
+    return;
+  }
 
-    // 🔹 Fetch username first
-const userRef = doc(db, "users", auth.currentUser.uid);
-const userSnap = await getDoc(userRef);
+  // 🔥 Declare username OUTSIDE
+  let username = "Unknown";
 
-let username = "Unknown";
+  const userRef = doc(db, "users", auth.currentUser.uid);
+  const userSnap = await getDoc(userRef);
 
-if (userSnap.exists()) {
-  username = userSnap.data().username;
-}
+  if (userSnap.exists()) {
+    username = userSnap.data().username;
+  }
 
-await addDoc(collection(db, "answers"), {
-  questionId: id,
-  questionText: question?.text,
-  answerText: answerText.trim(),
-  answeredBy: auth.currentUser.uid,  // keep UID for logic
-  answeredByUsername: username,      // 🔥 ADD THIS
-  courseCode: question.courseCode,
-  createdAt: serverTimestamp(),
-  isApproved: false,
-});
+  await addDoc(collection(db, "answers"), {
+    questionId: id,
+    questionText: question?.text,
+    answerText: answerText.trim(),
+    answeredBy: auth.currentUser.uid,
+    answeredByUsername: username, // ✅ now defined
+    courseCode: question.courseCode,
+    createdAt: serverTimestamp(),
+    isApproved: false,
+  });
 
-    setAnswerText("");
-  };
+  setAnswerText("");
+};
 
   const handleApprove = async (answer) => {
   if (auth.currentUser.uid !== question.userId) {
@@ -136,7 +136,7 @@ await addDoc(collection(db, "answers"), {
     <div className="side-page-content">
       <div className="travel-card">
         <h2>{question?.text}</h2>
-        <small>Asked by: {question?.name || "Unknown"}</small>
+        <small>Asked by: {question?.username || "Unknown"}</small>
       </div>
 
       {auth.currentUser?.uid !== question?.userId &&
@@ -159,9 +159,7 @@ await addDoc(collection(db, "answers"), {
         {answers.map((ans) => (
           <div key={ans.id} className="travel-card">
             <p>{ans.answerText}</p>
-            <small>
-  Answered by: {ans.answeredByUsername || "Unknown"}
-</small>
+            <small>Answered by: {ans.answeredByUsername || "Unknown"}</small>
 
             {question?.userId === auth.currentUser?.uid &&
               !ans.isApproved && (
