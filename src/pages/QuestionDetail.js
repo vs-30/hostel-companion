@@ -56,15 +56,26 @@ const QuestionDetail = () => {
       return;
     }
 
-    await addDoc(collection(db, "answers"), {
-      questionId: id,
-      questionText: question?.text,
-      answerText: answerText.trim(),
-      answeredBy: auth.currentUser.uid,
-      courseCode: question.courseCode,
-      createdAt: serverTimestamp(),
-      isApproved: false,
-    });
+    // 🔹 Fetch username first
+const userRef = doc(db, "users", auth.currentUser.uid);
+const userSnap = await getDoc(userRef);
+
+let username = "Unknown";
+
+if (userSnap.exists()) {
+  username = userSnap.data().username;
+}
+
+await addDoc(collection(db, "answers"), {
+  questionId: id,
+  questionText: question?.text,
+  answerText: answerText.trim(),
+  answeredBy: auth.currentUser.uid,  // keep UID for logic
+  answeredByUsername: username,      // 🔥 ADD THIS
+  courseCode: question.courseCode,
+  createdAt: serverTimestamp(),
+  isApproved: false,
+});
 
     setAnswerText("");
   };
@@ -148,7 +159,9 @@ const QuestionDetail = () => {
         {answers.map((ans) => (
           <div key={ans.id} className="travel-card">
             <p>{ans.answerText}</p>
-            <small>Answered by{ans.answeredBy}</small>
+            <small>
+  Answered by: {ans.answeredByUsername || "Unknown"}
+</small>
 
             {question?.userId === auth.currentUser?.uid &&
               !ans.isApproved && (

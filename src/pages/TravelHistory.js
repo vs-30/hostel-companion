@@ -174,7 +174,10 @@ function TravelHistory() {
         <div className="card-footer">
           <p>{<CgCalendarDates/>} {request.postDate || "Not specified"}</p>
           <strong style={{color:"var(--accent-color)"}}>{isReceived ? "Requested By: " : "Requested To:"} </strong>
-          <p>Companion id : {companionId}</p>
+          <p>
+  Companion :{" "}
+  {usersData[companionId]?.username || "Loading..."}
+</p>
 
           <p> Rating :{" "}
             {usersData[companionId]?.averageRating ? (

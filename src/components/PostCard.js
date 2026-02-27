@@ -109,7 +109,7 @@ setUserRating({
       <p className="description-text">{post.description}</p>
 
       <div className="rating-badge">
-        <p><strong>User:</strong> {post.userId}</p>
+        <p><strong>User:</strong> {post.username || "Unknown User"}</p>
         <p>
           <strong>Gender:</strong>{" "}
           {posterGender
