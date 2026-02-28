@@ -64,6 +64,7 @@ const BookingModal = ({ seat, onClose, currentStudentId }) => {
 
   useEffect(() => {
   const fetchMyUsername = async () => {
+    
     const snap = await getDocs(
       query(collection(db, "usernames"), where("uid", "==", currentStudentId))
     );
@@ -77,6 +78,11 @@ const BookingModal = ({ seat, onClose, currentStudentId }) => {
     fetchMyUsername();
   }
 }, [currentStudentId]);
+useEffect(() => {
+  if (allowedUsers.length > 0 && !bookedForUsername) {
+    setBookedForUsername(allowedUsers[0]);
+  }
+}, [allowedUsers, bookedForUsername]);
   
   useEffect(() => {
   if (!currentStudentId || !myUsername) return;
@@ -92,7 +98,7 @@ const BookingModal = ({ seat, onClose, currentStudentId }) => {
     const friendList = snap.docs.map(d => d.data().username);
 
     setAllowedUsers([
-      myUsername,  // ✅ properly fetched username
+      myUsername,  
       ...friendList
     ]);
   });

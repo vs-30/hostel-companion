@@ -252,7 +252,7 @@ const FriendsModal = ({ currentStudentId, onClose }) => {
             <div key={req.id} className="friend-item">
               <span>{req.username}</span>
               <button
-                className="btn-cancel"
+                className="btn-cancel-friend"
                 onClick={() => cancelRequest(req.id)}
               >
                 Cancel
