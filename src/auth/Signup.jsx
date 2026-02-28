@@ -12,11 +12,12 @@ const Signup = () => {
   const [degree, setDegree] = useState("");
   const [semester, setSemester] = useState("");
   const [branch, setBranch] = useState("");
+  const [username, setUsername] = useState("");
   const navigate = useNavigate();
 
   const signupWithGoogle = async () => {
     try {
-      if (!gender || !degree || !branch || !semester) {
+      if (!gender || !degree || !branch || !semester || !username) {
         alert("Please complete all fields before signing up.");
         return;
       }
@@ -46,25 +47,45 @@ const Signup = () => {
         navigate("/login");
         return;
       }
-      const semesterCourses =degreeData[degree].branches[branch].semesters[semester];
+
+      // 🔥 CHECK USERNAME UNIQUENESS
+      const cleanUsername = username.trim().toLowerCase();
+      const usernameRef = doc(db, "usernames", cleanUsername);
+      const usernameSnap = await getDoc(usernameRef);
+
+      if (usernameSnap.exists()) {
+        alert("Username already taken. Please choose another.");
+        await signOut(auth);
+        return;
+      }
+
+      const semesterCourses =
+        degreeData[degree].branches[branch].semesters[semester];
+
+      // 🔥 CREATE USER DOCUMENT
       await setDoc(userRef, {
         name: user.displayName,
         email: user.email,
+        username: cleanUsername,
         gender,
         degree,
         branch,
         semester,
-        enrolledCourses: semesterCourses.map(course => ({
+        enrolledCourses: semesterCourses.map((course) => ({
           code: course.code,
           name: course.name,
-          credits: 0
-      })),
+          credits: 0,
+        })),
         createdAt: new Date(),
+      });
+
+      // 🔥 RESERVE USERNAME
+      await setDoc(usernameRef, {
+        uid: user.uid,
       });
 
       alert("Signup successful!");
       navigate("/");
-
     } catch (err) {
       console.error(err);
       alert(err.message);
@@ -105,7 +126,9 @@ const Signup = () => {
         >
           <option value="">Select Degree</option>
           {Object.keys(degreeData).map((deg) => (
-            <option key={deg} value={deg}>{deg}</option>
+            <option key={deg} value={deg}>
+              {deg}
+            </option>
           ))}
         </select>
       </div>
@@ -121,30 +144,47 @@ const Signup = () => {
           >
             <option value="">Select Branch</option>
             {Object.keys(degreeData[degree].branches).map((br) => (
-              <option key={br} value={br}>{br}</option>
+              <option key={br} value={br}>
+                {br}
+              </option>
             ))}
           </select>
         </div>
       )}
+
+      {/* Semester */}
       {degree && branch && (
-  <div className="form-group">
-    <label className="form-label">Semester</label>
-    <select
-      className="form-select"
-      value={semester}
-      onChange={(e) => setSemester(e.target.value)}
-    >
-      <option value="">Select Semester</option>
-      {Object.keys(
-        degreeData[degree].branches[branch].semesters
-      ).map((sem) => (
-        <option key={sem} value={sem}>
-          Semester {sem}
-        </option>
-      ))}
-    </select>
-  </div>
-)}
+        <div className="form-group">
+          <label className="form-label">Semester</label>
+          <select
+            className="form-select"
+            value={semester}
+            onChange={(e) => setSemester(e.target.value)}
+          >
+            <option value="">Select Semester</option>
+            {Object.keys(
+              degreeData[degree].branches[branch].semesters
+            ).map((sem) => (
+              <option key={sem} value={sem}>
+                Semester {sem}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {/* Username */}
+      <div className="form-group">
+        <label className="form-label">Username</label>
+        <input
+          type="text"
+          className="form-input"
+          placeholder="Choose a username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+        />
+      </div>
+
       <button
         className="google-btn"
         onClick={signupWithGoogle}

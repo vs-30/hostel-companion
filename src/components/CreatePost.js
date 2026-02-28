@@ -10,10 +10,11 @@ function CreatePost() {
   const [description, setDescription] = useState("");
   const [allowedGender, setAllowedGender] = useState("all");
   const [currentUserGender, setCurrentUserGender] = useState(null);
+  const [currentUsername, setCurrentUsername] = useState(null);
 
-  // 🔥 FETCH LOGGED IN USER GENDER
+  // ✅ FETCH LOGGED IN USER DATA
   useEffect(() => {
-    const fetchGender = async () => {
+    const fetchUserData = async () => {
       if (!auth.currentUser) return;
 
       try {
@@ -21,18 +22,25 @@ function CreatePost() {
         const userSnap = await getDoc(userRef);
 
         if (userSnap.exists()) {
-          setCurrentUserGender(userSnap.data().gender);
+          const data = userSnap.data();   // ✅ FIXED
+          setCurrentUserGender(data.gender);
+          setCurrentUsername(data.username);  // ✅ FIXED
         }
       } catch (error) {
-        console.error("Error fetching user gender:", error);
+        console.error("Error fetching user data:", error);
       }
     };
 
-    fetchGender();
+    fetchUserData();
   }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!currentUsername) {
+      alert("User data not loaded yet. Please wait.");
+      return;
+    }
 
     try {
       await addDoc(collection(db, "travelPosts"), {
@@ -41,7 +49,8 @@ function CreatePost() {
         description,
         allowedGender,
         userId: auth.currentUser.uid,
-        userGender: currentUserGender, // 🔥 STORED HERE
+        username: currentUsername,   // ✅ NOW WORKS
+        userGender: currentUserGender,
         createdAt: serverTimestamp(),
       });
 

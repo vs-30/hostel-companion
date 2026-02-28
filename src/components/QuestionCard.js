@@ -52,6 +52,8 @@ import {
   onSnapshot,
   addDoc,
   serverTimestamp,
+  doc,
+  getDoc,
 } from "firebase/firestore";
 
 const QuestionCard = ({ question }) => {
@@ -85,15 +87,26 @@ const QuestionCard = ({ question }) => {
   const handleAnswerSubmit = async () => {
     if (!answerText.trim()) return;
 
-    await addDoc(collection(db, "answers"), {
-      questionId: question.id,
-      questionText: question.text,
-      answerText: answerText.trim(),
-      answeredBy: auth.currentUser.uid,
-      courseCode:question.courseCode,
-      createdAt: serverTimestamp(),
-      isApproved: false,
-    });
+    // 🔥 Fetch username first
+let username = "Unknown";
+
+const userRef = doc(db, "users", auth.currentUser.uid);
+const userSnap = await getDoc(userRef);
+
+if (userSnap.exists()) {
+  username = userSnap.data().username;
+}
+
+await addDoc(collection(db, "answers"), {
+  questionId: question.id,
+  questionText: question.text,
+  answerText: answerText.trim(),
+  answeredBy: auth.currentUser.uid,
+  answeredByUsername: username, // ✅ ADD THIS
+  courseCode: question.courseCode,
+  createdAt: serverTimestamp(),
+  isApproved: false,
+});
 
     setAnswerText("");
     setShowAnswerBox(false);
@@ -139,7 +152,7 @@ const QuestionCard = ({ question }) => {
             answers.map((ans) => (
               <div key={ans.id} className="answer-card">
                 <p>{ans.answerText}</p>
-                <small>— {ans.answeredBy}</small>
+                <small>— {ans.answeredByUsername || "Unknown"}</small>
               </div>
             ))
           ) : (

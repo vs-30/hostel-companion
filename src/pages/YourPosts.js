@@ -121,7 +121,9 @@ const YourPosts = () => {
   .map((ans) => (
     <div key={ans.id} className="answer-card">
       <p className="answer-text">{ans.answerText}</p>
-      <small className="answered-by">— {ans.answeredBy}</small>
+      <small className="answered-by">
+  — {ans.answeredByUsername || "Unknown"}
+</small>
 
       <div className="button-container">
         {q.userId === auth.currentUser.uid && !ans.isApproved && !approvedAnswers[ans.id] && (
