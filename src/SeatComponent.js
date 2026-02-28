@@ -78,7 +78,7 @@ useEffect(() => {
 
   return {
     id,
-    status: activeBooking.studentId === currentStudentId
+    status: activeBooking.bookedBy === currentStudentId
       ? "mine"
       : "booked",
     bookings: data.bookings
@@ -102,45 +102,66 @@ useEffect(() => {
   const StudyBench = ({ benchId }) => (
     <div className="bench-unit">
       <div className="seat-row-side">{[1, 2, 3, 4].map(s => renderSeat(`${benchId}-T${s}`))}</div>
-      <div className="bench-surface">{<MdBatteryChargingFull size={20}/>}</div>
+      <div className="bench-surface"onClick={() => {
+    const seats = [1,2,3,4].map(s => `${benchId}-S${s}`);
+    setSelectedSeat({ id: benchId, bulkSeats: seats });
+  }}>{<MdBatteryChargingFull size={20}/>}</div>
       <div className="seat-row-side">{[5, 6, 7, 8].map(s => renderSeat(`${benchId}-B${s}`))}</div>
     </div>
   );
   const StudyBenchFlipped = ({ benchId }) => (
     <div className="bench-unit-flipped">
       <div className="seat-side-flipped">{[1, 2, 3, 4].map(s => renderSeat(`${benchId}-T${s}`))}</div>
-      <div className="bench-surface-flipped">{<MdBatteryChargingFull size={20}/>}</div>
+      <div className="bench-surface-flipped"onClick={() => {
+    const seats = [1,2,3,4].map(s => `${benchId}-S${s}`);
+    setSelectedSeat({ id: benchId, bulkSeats: seats });
+  }}>{<MdBatteryChargingFull size={20}/>}</div>
       <div className="seat-side-flipped">{[5, 6, 7, 8].map(s => renderSeat(`${benchId}-B${s}`))}</div>
     </div>
   );
   const RHStudyBench = ({ benchId }) => (
     <div className="bench-unit-flipped">
       <div className="seat-side-flipped">{[1, 2, 3, 4].map(s => renderSeat(`${benchId}-T${s}`))}</div>
-      <div className="bench-surface-flipped"></div>
+      <div className="bench-surface-flipped" onClick={() => {
+    const seats = [1,2,3,4].map(s => `${benchId}-S${s}`);
+    setSelectedSeat({ id: benchId, bulkSeats: seats });
+  }}></div>
       <div className="seat-side-flipped">{[5, 6, 7, 8].map(s => renderSeat(`${benchId}-B${s}`))}</div>
     </div>
   );
   const WindowBench = ({ benchId }) => (
     <div className="bench-unit">
-      <div className="bench-surface">{<MdBatteryChargingFull size={20}/>}</div>
+      <div className="bench-surface"onClick={() => {
+    const seats = [1,2,3,4].map(s => `${benchId}-S${s}`);
+    setSelectedSeat({ id: benchId, bulkSeats: seats });
+  }}>{<MdBatteryChargingFull size={20}/>}</div>
       <div className="seat-row-side">{[1, 2, 3, 4].map(s => renderSeat(`${benchId}-S${s}`))}</div>
     </div>
   );
   const WindowBenchFlippedRight = ({ benchId }) => (
     <div className="bench-unit-flipped">
       <div className="seat-side-flipped">{[1, 2, 3, 4].map(s => renderSeat(`${benchId}-S${s}`))}</div>
-      <div className="bench-surface-flipped">{<MdBatteryChargingFull size={20}/>}</div>
+      <div className="bench-surface-flipped"onClick={() => {
+    const seats = [1,2,3,4].map(s => `${benchId}-S${s}`);
+    setSelectedSeat({ id: benchId, bulkSeats: seats });
+  }}>{<MdBatteryChargingFull size={20}/>}</div>
     </div>
   );
   const WindowBenchFlippedLeft= ({ benchId}) => (
     <div className="bench-unit-flipped">
-      <div className="bench-surface-flipped">{<MdBatteryChargingFull size={20}/>}</div>
+      <div className="bench-surface-flipped"onClick={() => {
+    const seats = [1,2,3,4].map(s => `${benchId}-S${s}`);
+    setSelectedSeat({ id: benchId, bulkSeats: seats });
+  }}>{<MdBatteryChargingFull size={20}/>}</div>
       <div className="seat-side-flipped">{[1, 2, 3, 4].map(s => renderSeat(`${benchId}-S${s}`))}</div>
     </div>
   );
   const RoundTable = ({ tableId }) => (
     <div className="round-table-cluster">
-      <div className="table-center"><MdBatteryChargingFull size={20}/></div> 
+      <div className="table-center"onClick={() => {
+    const seats = [...Array(6)].map((_, i) => `${tableId}-S${i+1}`);
+    setSelectedSeat({ id: tableId, bulkSeats: seats });
+  }}><MdBatteryChargingFull size={20}/></div> 
       {[...Array(6)].map((_, i) => (
         <div key={i} className="round-seat-wrapper" style={{ transform: `rotate(${i * 60}deg) translateY(-40px)` }}>
           {renderSeat(`${tableId}-S${i+1}`)}  

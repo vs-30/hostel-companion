@@ -1,7 +1,8 @@
 import { Link, useLocation } from "react-router-dom";
 import { MdPersonSearch, MdHistory } from "react-icons/md";
 import { BiAddToQueue } from "react-icons/bi";
-import "../styles/travel.css";
+
+import "../styles/sidebar.css";
 
 function Sidebar() {
   const location = useLocation();

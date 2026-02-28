@@ -1,9 +1,9 @@
-
 import { useState, useEffect } from "react";
 import {
   doc,
   runTransaction,
   collection,
+  collectionGroup,
   query,
   where,
   getDocs,
@@ -22,29 +22,32 @@ const BookingModal = ({ seat, onClose, currentStudentId }) => {
   const [error, setError] = useState("");
   const [extendMinutes, setExtendMinutes] = useState("");
   const [bookings, setBookings] = useState([]);
+  const [bookedForUsername, setBookedForUsername] = useState("");
+ 
 
+  const isBulk = seat?.bulkSeats?.length > 0;
+
+  /* ---------------- DEFAULT TIME ---------------- */
   useEffect(() => {
     if (!seat) return;
 
     const now = new Date();
-    const todayFormatted = now.toISOString().split("T")[0];
-    setSelectedDate(todayFormatted);
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, "0");
+    const dd = String(now.getDate()).padStart(2, "0");
 
-    const from = now.toTimeString().slice(0, 5);
-    setFromTime(from);
+    setSelectedDate(`${yyyy}-${mm}-${dd}`);
+    setFromTime(now.toTimeString().slice(0, 5));
 
     const end = new Date(now.getTime() + 2 * 60 * 60 * 1000);
     setToTime(end.toTimeString().slice(0, 5));
   }, [seat]);
 
-  // 🔥 REALTIME BOOKINGS FOR THIS SEAT
+  /* ---------------- LISTEN BOOKINGS ---------------- */
   useEffect(() => {
     if (!seat) return;
 
-    const q = query(
-      collection(db, "seatBookings"),
-      where("seatId", "==", seat.id)
-    );
+    const q = query(collection(db, "seats", seat.id, "bookings"));
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const data = snapshot.docs.map(doc => ({
@@ -57,17 +60,41 @@ const BookingModal = ({ seat, onClose, currentStudentId }) => {
     return () => unsubscribe();
   }, [seat]);
 
+  /* ---------------- AUTO USERNAME ---------------- */
+  useEffect(() => {
+    const fetchUsername = async () => {
+      if (!currentStudentId) return;
+
+      const q = query(
+        collection(db, "usernames"),
+        where("uid", "==", currentStudentId)
+      );
+
+      const snap = await getDocs(q);
+      if (!snap.empty) {
+        setBookedForUsername(snap.docs[0].id);
+      }
+    };
+
+    fetchUsername();
+  }, [currentStudentId]);
+
   const convertToTimestamp = (dateStr, timeStr) => {
-    const date = new Date(dateStr);
+    const [year, month, day] = dateStr.split("-");
     const [hours, minutes] = timeStr.split(":");
-    date.setHours(hours);
-    date.setMinutes(minutes);
-    date.setSeconds(0);
-    date.setMilliseconds(0);
-    return date.getTime();
+
+    return new Date(
+      Number(year),
+      Number(month) - 1,
+      Number(day),
+      Number(hours),
+      Number(minutes)
+    ).getTime();
   };
 
+  /* ================= BOOKING ================= */
   const handleBooking = async () => {
+
     setError("");
 
     if (!selectedDate || !fromTime || !toTime) {
@@ -75,23 +102,8 @@ const BookingModal = ({ seat, onClose, currentStudentId }) => {
       return;
     }
 
-    const to = convertToTimestamp(selectedDate, toTime);
     const from = convertToTimestamp(selectedDate, fromTime);
-    const now = new Date();
-    now.setSeconds(0, 0);
-    const nowTs = now.getTime();
-    if (from < nowTs) {
-      setError("Cannot book for past time.");
-      return;
-    }
-
-    const startLimit = convertToTimestamp(selectedDate, "08:00");
-    const endLimit = convertToTimestamp(selectedDate, "22:00");
-
-    if (from < startLimit || to > endLimit) {
-      setError("Booking allowed only between 8:00 AM and 10:00 PM.");
-      return;
-    }
+    const to = convertToTimestamp(selectedDate, toTime);
 
     if (to <= from) {
       setError("End time must be after start time.");
@@ -103,40 +115,139 @@ const BookingModal = ({ seat, onClose, currentStudentId }) => {
       return;
     }
 
-    const uid = auth.currentUser.uid;
-    const bookingId = `${uid}_${selectedDate}`;
-    const bookingRef = doc(db, "seatBookings", bookingId);
+    const bookedBy = auth.currentUser.uid;
 
     try {
+
+      /* -------- BULK -------- */
+      if (isBulk) {
+
+        await runTransaction(db, async (transaction) => {
+
+          for (let i = 0; i < seat.bulkSeats.length; i++) {
+
+            const seatId = seat.bulkSeats[i];
+            const username = multiUsernames[i];
+
+            if (!username) throw new Error("All usernames required");
+
+            const userQuery = query(
+              collection(db, "usernames"),
+              where("__name__", "==", username)
+            );
+
+            const snap = await getDocs(userQuery);
+            if (snap.empty) {
+              throw new Error(`Username ${username} does not exist`);
+            }
+
+            const bookedForUid = snap.docs[0].data().uid;
+
+            // 🔥 Prevent same user multiple seats same time
+            const userBookingsQuery = query(
+              collectionGroup(db, "bookings"),
+              where("bookedForUid", "==", bookedForUid),
+              where("date", "==", selectedDate)
+            );
+
+            const userSnap = await getDocs(userBookingsQuery);
+
+            const userOverlap = userSnap.docs.some(doc => {
+              const b = doc.data();
+              return from < b.to && to > b.from;
+            });
+
+            if (userOverlap) {
+              throw new Error(
+                `${username} already has another booking during this time`
+              );
+            }
+
+            const bookingRef = doc(
+              collection(db, "seats", seatId, "bookings")
+            );
+
+            transaction.set(bookingRef, {
+              bookedBy,
+              bookedForUsername: username,
+              bookedForUid,
+              seatId,
+              date: selectedDate,
+              from,
+              to,
+              createdAt: Date.now()
+            });
+          }
+        });
+
+        alert("Bulk booking successful!");
+        onClose();
+        return;
+      }
+
+      /* -------- SINGLE -------- */
+
+      const usernameQuery = query(
+        collection(db, "usernames"),
+        where("__name__", "==", bookedForUsername)
+      );
+
+      const usernameSnap = await getDocs(usernameQuery);
+
+      if (usernameSnap.empty) {
+        setError("Username does not exist.");
+        return;
+      }
+
+      const bookedForUid = usernameSnap.docs[0].data().uid;
+
       await runTransaction(db, async (transaction) => {
 
-        const existing = await transaction.get(bookingRef);
+        // 🔥 Prevent user double booking
+        const userBookingsQuery = query(
+          collectionGroup(db, "bookings"),
+          where("bookedForUid", "==", bookedForUid),
+          where("date", "==", selectedDate)
+        );
 
-        // 🔥 One booking per day enforcement
-        if (existing.exists()) {
-          throw new Error("You already booked a seat for this day.");
+        const userSnap = await getDocs(userBookingsQuery);
+
+        const userOverlap = userSnap.docs.some(doc => {
+          const b = doc.data();
+          return from < b.to && to > b.from;
+        });
+
+        if (userOverlap) {
+          throw new Error(
+            `${bookedForUsername} already has another booking during this time`
+          );
         }
 
-        // 🔥 Overlap check for this seat
+        // 🔥 Prevent seat overlap
         const seatQuery = query(
-          collection(db, "seatBookings"),
-          where("seatId", "==", seat.id),
+          collection(db, "seats", seat.id, "bookings"),
           where("date", "==", selectedDate)
         );
 
         const seatSnap = await getDocs(seatQuery);
 
-        const overlap = seatSnap.docs.some(doc => {
+        const seatOverlap = seatSnap.docs.some(doc => {
           const b = doc.data();
           return from < b.to && to > b.from;
         });
 
-        if (overlap) {
+        if (seatOverlap) {
           throw new Error("Seat already booked for selected duration.");
         }
 
-        transaction.set(bookingRef, {
-          studentId: uid,
+        const newBookingRef = doc(
+          collection(db, "seats", seat.id, "bookings")
+        );
+
+        transaction.set(newBookingRef, {
+          bookedBy,
+          bookedForUsername,
+          bookedForUid,
           seatId: seat.id,
           date: selectedDate,
           from,
@@ -149,53 +260,57 @@ const BookingModal = ({ seat, onClose, currentStudentId }) => {
       onClose();
 
     } catch (err) {
-  setError(err.message);
-}
+      setError(err.message);
+    }
   };
 
+  /* ================= CANCEL ================= */
   const handleCancel = async () => {
-    const uid = auth.currentUser.uid;
-    const bookingId = `${uid}_${selectedDate}`;
-    const bookingRef = doc(db, "seatBookings", bookingId);
 
     const myBooking = bookings.find(
-      b => b.studentId === uid && b.date === selectedDate
+      b => b.bookedBy === currentStudentId
     );
 
-    if (!myBooking) return;
-
-    const cancelLimit = myBooking.from + (5 * 60 * 1000);
-
-    if (Date.now() > cancelLimit) {
-      setError("Cancellation allowed only until 5 minutes after start time.");
+    if (!myBooking) {
+      setError("No booking found.");
       return;
     }
+    const cancelLimit = myBooking.from + (5 * 60 * 1000); 
+    if (Date.now() > cancelLimit) 
+    { 
+      setError("Cancellation allowed only until 5 minutes after start time."); 
+      return; 
+    }
+    const bookingRef = doc(
+      db,
+      "seats",
+      seat.id,
+      "bookings",
+      myBooking.id
+    );
 
     await deleteDoc(bookingRef);
     alert("Booking cancelled.");
     onClose();
   };
 
+  /* ================= EXTEND ================= */
   const handleExtend = async () => {
-    setError("");
-
-    const uid = auth.currentUser.uid;
-    const bookingId = `${uid}_${selectedDate}`;
-    const bookingRef = doc(db, "seatBookings", bookingId);
 
     const myBooking = bookings.find(
-      b => b.studentId === uid && b.date === selectedDate
+      b => b.bookedBy === currentStudentId
     );
 
-    if (!myBooking) return;
-
-    const extendLimit = myBooking.from + (5 * 60 * 1000);
-
-    if (Date.now() > extendLimit) {
-      setError("Extension allowed only until 5 minutes after start time.");
+    if (!myBooking) {
+      setError("No booking found.");
       return;
     }
-
+    const extendLimit = myBooking.to - (5 * 60 * 1000); 
+    if (Date.now() > extendLimit) 
+    { 
+      setError("Extension allowed only until 5 minutes before end time."); 
+      return; 
+    }
     const extendMs = parseInt(extendMinutes) * 60 * 1000;
     const newTo = myBooking.to + extendMs;
 
@@ -204,85 +319,64 @@ const BookingModal = ({ seat, onClose, currentStudentId }) => {
       return;
     }
 
-    const endLimit = convertToTimestamp(selectedDate, "22:00");
-
-    if (newTo > endLimit) {
-      setError("Cannot extend beyond 10:00 PM.");
-      return;
-    }
+    const bookingRef = doc(
+      db,
+      "seats",
+      seat.id,
+      "bookings",
+      myBooking.id
+    );
 
     await updateDoc(bookingRef, { to: newTo });
-
-    alert("Booking extended successfully.");
+    alert("Booking extended.");
     onClose();
   };
 
-  // Inside BookingModal component
-const nowTime = Date.now();
+  /* ================= UI ================= */
 
-// Filter the bookings list to exclude past ones
-const activeAndFutureBookings = bookings.filter(b => b.to > nowTime);
-
-
-  const currentBooking = bookings.find(
-    b => nowTime >= b.from && nowTime <= b.to
-  );
-
-  const myBooking = bookings.find(
-    b => b.studentId === currentStudentId && b.date === selectedDate
-  );
+  const seatsToDisplay = isBulk ? seat.bulkSeats : [seat.id];
+  const [multiUsernames, setMultiUsernames] = useState(
+  new Array(seatsToDisplay.length).fill("")
+);
 
   return (
     <div className="modal-overlay">
       <div className="modal-content">
-        <h2>Seat {seat.id}</h2>
 
-        <h4>Booked Slots:</h4>
-
-        {bookings.length > 0 ? (
-          bookings.map((b, index) => {
-            const isMine = b.studentId === currentStudentId;
-            return (
-              <div key={index}
-                style={{
-                  padding: "6px",
-                  borderRadius: "6px",
-                  marginBottom: "6px",
-                  backgroundColor: isMine ? "var(--accent-color)" : "#f1f1f1",
-                  color: isMine ? "white" : "black"
-                }}>
-                {new Date(b.from).toLocaleString()} -
-                {new Date(b.to).toLocaleTimeString()}
-                {isMine && " (Your Booking)"}
-              </div>
-            );
-          })
-        ) : <p>No bookings yet</p>}
+        <h2>
+          {isBulk ? "Bulk Seat Booking" : `Seat ${seat.id}`}
+        </h2>
 
         <hr />
 
-        {/* ✅ STATUS FIXED */}
-{activeAndFutureBookings.length > 0 ? (
-  currentBooking ? (
-    currentBooking.studentId === currentStudentId ? (
-      <p>
-        Status: <span className="mine">You have booked this seat.</span>
-      </p>
-    ) : (
-      <p>
-        Status: <span className="booked">Seat is currently booked.</span>
-      </p>
-    )
-  ) : (
-    <p>
-      Status: <span className="free">Seat is available.</span>
-    </p>
-  )
-) : (
-  <p>
-    Status: <span className="free">Seat is available.</span>
-  </p>
-)}
+        {seatsToDisplay.map((seatId, idx) => {
+
+          const seatBookings = isBulk
+            ? bookings.filter(b => b.seatId === seatId)
+            : bookings;
+
+          return (
+            <div key={idx}>
+              <h4>{seatId}</h4>
+
+              {seatBookings.map((b, i) => {
+                const isMine = b.bookedBy === currentStudentId;
+                const isForMe = b.bookedForUid === currentStudentId;
+
+                return (
+                  <div key={i}>
+                    {new Date(b.from).toLocaleTimeString()} -
+                    {new Date(b.to).toLocaleTimeString()}
+                    <br />
+                    For: {b.bookedForUsername}
+                    {isMine && " (Booked By You)"}
+                    {isForMe && " (Booked For You)"}
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })}
 
         <label>From:</label>
         <input type="time" value={fromTime}
@@ -292,35 +386,63 @@ const activeAndFutureBookings = bookings.filter(b => b.to > nowTime);
         <input type="time" value={toTime}
           onChange={(e) => setToTime(e.target.value)} />
 
+        {isBulk ? (
+  <>
+    <h4>Enter Usernames For Each Seat</h4>
+
+    {seatsToDisplay.map((seatId, index) => (
+      <div key={index} style={{ marginBottom: "8px" }}>
+        <label>{seatId} Username:</label>
+        <input
+          type="text"
+          value={multiUsernames[index] || ""}
+          onChange={(e) => {
+            const updated = [...multiUsernames];
+            updated[index] = e.target.value;
+            setMultiUsernames(updated);
+          }}
+        />
+      </div>
+    ))}
+  </>
+) : (
+  <>
+    <label>Booked For (Username):</label>
+    <input
+      type="text"
+      value={bookedForUsername}
+      onChange={(e) => setBookedForUsername(e.target.value)}
+    />
+  </>
+)}
+
         {error && <p style={{ color: "red" }}>{error}</p>}
 
         <button onClick={handleBooking} className="btn-confirm">
           Confirm Booking
         </button>
 
-        {myBooking && (
+        {bookings.some(b => b.bookedBy === currentStudentId) && (
           <>
             <button onClick={handleCancel} className="btn-cancel">
-              Cancel Booking
+              Cancel My Booking
             </button>
 
-            <div style={{ marginTop: "10px" }}>
-              <input type="number"
-                min="1"
-                max="30"
-                value={extendMinutes}
-                onChange={(e) => setExtendMinutes(e.target.value)}
-              />
-              <button onClick={handleExtend} className="btn-extend">
-                Extend
-              </button>
-            </div>
+            <input
+              type="number"
+              min="1"
+              max="30"
+              value={extendMinutes}
+              onChange={(e) => setExtendMinutes(e.target.value)}
+            />
+            <button onClick={handleExtend} className="btn-extend">
+              Extend My Booking
+            </button>
           </>
         )}
 
-        <button onClick={onClose} className="close-link">
-          Close
-        </button>
+        <button onClick={onClose}>Close</button>
+
       </div>
     </div>
   );
