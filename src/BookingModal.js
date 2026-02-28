@@ -61,11 +61,6 @@ const BookingModal = ({ seat, onClose, currentStudentId }) => {
 
     return () => unsubscribe();
   }, [seat]);
-  useEffect(() => {
-  if (allowedUsers.length > 0 && !bookedForUsername) {
-    setBookedForUsername(allowedUsers[0]);
-  }
-}, [allowedUsers]);
 
   useEffect(() => {
   const fetchMyUsername = async () => {
@@ -123,7 +118,6 @@ const BookingModal = ({ seat, onClose, currentStudentId }) => {
   const handleBooking = async () => {
 
     setError("");
-    
 
     if (!selectedDate || !fromTime || !toTime) {
       setError("Select date and both time fields.");
@@ -156,10 +150,6 @@ const BookingModal = ({ seat, onClose, currentStudentId }) => {
 
             const seatId = seat.bulkSeats[i];
             const username = multiUsernames[i];
-
-if (!username || username.trim() === "") {
-  throw new Error("All usernames required");
-}
 
             if (!username) throw new Error("All usernames required");
 
@@ -374,7 +364,7 @@ if (!username || username.trim() === "") {
   return (
     <div className="smodal-overlay">
       <div className="smodal-content">
-        <div className="smodal-header">
+        <div className="smodalheader">
           <h2>{isBulk ? "Bulk Seat Booking" : `Seat ${seat.id}`}</h2>
           <button className="close-modal"onClick={onClose}>&times;</button>
         </div>
