@@ -627,21 +627,21 @@ hr {
   cursor: pointer;
 }
 /* ===== MODAL OVERLAY ===== */
-.modal-overlay {
+.smodal-overlay {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.75);
   backdrop-filter: blur(6px);
-  display: flex;
+  display: grid;
   justify-content: center;
   align-items: center;
   z-index: 1000;
 }
 
 /* ===== MODAL CONTENT ===== */
-.modal-content {
-  background: #111827;
-  color: white;
+.smodal-content {
+  background:var(--card-bg);
+  color: var(--text-main);
   width: 500px;
   max-height: 85vh;
   overflow-y: auto;
@@ -650,38 +650,61 @@ hr {
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
   animation: modalFade 0.2s ease-in-out;
 }
-
+.smodal-header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
 /* ===== HEADINGS ===== */
-.modal-content h2 {
-  text-align: center;
+.smodal-content h2 {
   margin-bottom: 10px;
   font-size: 20px;
   font-weight: 600;
 }
 
-.modal-content h4 {
+.smodal-content h4 {
   margin-top: 15px;
   margin-bottom: 8px;
   font-weight: 500;
-  color: #cbd5e1;
+  color: var(--accent-color);
 }
 
 /* ===== INPUT FIELDS ===== */
-.modal-content input {
+.smodal-content input {
   width: 100%;
   padding: 8px;
   margin-bottom: 8px;
   border-radius: 6px;
-  border: none;
-  background: #1f2937;
-  color: white;
+  border:1px solid var(--accent-color);
+  background: var(--card-bg);
+  color:var(--text-main);
   outline: none;
 }
 
-.modal-content input:focus {
+.smodal-content input:focus {
   box-shadow: 0 0 0 2px #4f46e5;
 }
+.smodal-header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+.close-modal {
+    background: transparent;
+    border: none;
+    font-size: 28px;
+    color: var(--text-main);
+    cursor: pointer;
+    opacity: 0.6;
+}
 
+.close-modal:hover {
+    opacity: 1;
+}
 /* ===== BUTTONS ===== */
 .btn-confirm {
   width: 100%;
@@ -728,17 +751,261 @@ hr {
 .btn-extend:hover {
   background: #15803d;
 }
-
+.mulinput-group
+{
+  display :grid;
+  grid-template-columns: repeat(2,1fr);
+}
+.booking-select
+{
+  width: 100%;
+  margin-bottom: 15px;
+  padding: 10px; 
+  border-radius: 8px;
+  background:var(--card-bg);
+  color: var(--text-main);
+}
 /* ===== SCROLLBAR (optional clean look) ===== */
-.modal-content::-webkit-scrollbar {
+.smodal-content::-webkit-scrollbar {
   width: 6px;
 }
 
-.modal-content::-webkit-scrollbar-thumb {
+.smodal-content::-webkit-scrollbar-thumb {
   background: #4f46e5;
   border-radius: 10px;
 }
+/* ===== FRIENDS MODAL OVERLAY ===== */
+.friends-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px); /* Softens the library map behind */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  animation: fadeIn 0.2s ease-out;
+}
 
+/* ===== FRIENDS MODAL CARD ===== */
+.friends-modal {
+  background: var(--card-bg);
+  color: var(--text-main);
+  width: 90%;
+  max-width: 420px;
+  padding: 24px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  animation: modalFade 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.friends-modal h2 {
+  font-size: 1.4rem;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--accent-color);
+}
+
+/* ===== SECTION STYLING ===== */
+.friends-section {
+  margin-bottom: 24px;
+  overflow-y: auto;
+  padding-right: 5px;
+}
+
+.friends-section h3 {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 5px;
+}
+
+/* ===== FRIEND ITEM ROW ===== */
+.friends-btn
+{
+  padding: 10px 24px;
+  border: none;
+  background: var(--accent-color);
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  outline: none;
+}
+.friend-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+  margin-bottom: 8px;
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: var(--radius-md);
+  transition: transform 0.2s;
+}
+
+[data-theme='dark'] .friend-item {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.friend-item:hover {
+  transform: translateX(5px);
+  background: rgba(108, 92, 231, 0.08);
+}
+
+/* User Info Cluster */
+.friend-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Small Avatar Placeholder */
+.friend-avatar {
+  width: 36px;
+  height: 36px;
+  background: var(--accent-color);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 0.8rem;
+}
+
+/* ===== BUTTONS WITHIN MODAL ===== */
+.btn-add-friend {
+  background: var(--accent-color);
+  color: white;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: var(--transition);
+}
+
+.btn-remove-friend {
+  background: transparent;
+  color: var(--red);
+  border: 1px solid var(--red);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  opacity: 0.6;
+}
+
+.btn-remove-friend:hover {
+  opacity: 1;
+  background: var(--red);
+  color: white;
+}
+
+/* Close Button at Bottom */
+.friends-close-btn {
+  margin-top: 10px;
+  padding: 12px;
+  background: var(--border-color);
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--text-main);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ===== SEARCH INPUT (If you add one) ===== */
+.friend-search {
+  width: 100%;
+  padding: 10px 15px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  background: rgba(0, 0, 0, 0.05);
+  margin-bottom: 15px;
+  color: inherit;
+  outline: none;
+}
+
+.friend-search:focus {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px rgba(108, 92, 231, 0.2);
+}
+/* ===== INPUT & SEARCH CONTAINER ===== */
+.friend-input-group {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  background: rgba(108, 92, 231, 0.05);
+  padding: 10px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+}
+
+/* The Actual Input Box */
+.friend-input-group input {
+  flex: 1; /* Takes up remaining space */
+  background: transparent;
+  border: none;
+  padding: 8px 12px;
+  color: var(--text-main);
+  font-size: 0.95rem;
+  outline: none;
+}
+
+.friend-input-group input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+/* The Send/Add Button */
+.btn-send-request {
+  background: var(--accent-color);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+  box-shadow: 0 4px 10px rgba(108, 92, 231, 0.2);
+}
+
+.btn-send-request:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 15px rgba(108, 92, 231, 0.3);
+}
+
+.btn-send-request:active {
+  transform: translateY(0);
+}
+
+/* Disable state for when input is empty */
+.btn-send-request:disabled {
+  background: var(--stair-fill);
+  cursor: not-allowed;
+  box-shadow: none;
+  opacity: 0.5;
+}
+
+/* Adding a subtle focus ring to the whole group */
+.friend-input-group:focus-within {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.15);
+}
 /* ===== ANIMATION ===== */
 @keyframes modalFade {
   from {

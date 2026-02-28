@@ -22,7 +22,9 @@ const BookingModal = ({ seat, onClose, currentStudentId }) => {
   const [error, setError] = useState("");
   const [extendMinutes, setExtendMinutes] = useState("");
   const [bookings, setBookings] = useState([]);
+  const [myUsername, setMyUsername] = useState("");
   const [bookedForUsername, setBookedForUsername] = useState("");
+  const [allowedUsers, setAllowedUsers] = useState([]);
  
 
   const isBulk = seat?.bulkSeats?.length > 0;
@@ -60,24 +62,44 @@ const BookingModal = ({ seat, onClose, currentStudentId }) => {
     return () => unsubscribe();
   }, [seat]);
 
-  /* ---------------- AUTO USERNAME ---------------- */
   useEffect(() => {
-    const fetchUsername = async () => {
-      if (!currentStudentId) return;
+  const fetchMyUsername = async () => {
+    const snap = await getDocs(
+      query(collection(db, "usernames"), where("uid", "==", currentStudentId))
+    );
 
-      const q = query(
-        collection(db, "usernames"),
-        where("uid", "==", currentStudentId)
-      );
+    if (!snap.empty) {
+      setMyUsername(snap.docs[0].id);
+    }
+  };
 
-      const snap = await getDocs(q);
-      if (!snap.empty) {
-        setBookedForUsername(snap.docs[0].id);
-      }
-    };
+  if (currentStudentId) {
+    fetchMyUsername();
+  }
+}, [currentStudentId]);
+  
+  useEffect(() => {
+  if (!currentStudentId || !myUsername) return;
 
-    fetchUsername();
-  }, [currentStudentId]);
+  const friendsRef = collection(
+    db,
+    "userFriends",
+    currentStudentId,
+    "friends"
+  );
+
+  const unsub = onSnapshot(friendsRef, snap => {
+    const friendList = snap.docs.map(d => d.data().username);
+
+    setAllowedUsers([
+      myUsername,  // ✅ properly fetched username
+      ...friendList
+    ]);
+  });
+
+  return () => unsub();
+}, [currentStudentId, myUsername]);
+
 
   const convertToTimestamp = (dateStr, timeStr) => {
     const [year, month, day] = dateStr.split("-");
@@ -340,14 +362,12 @@ const BookingModal = ({ seat, onClose, currentStudentId }) => {
 );
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-content">
-
-        <h2>
-          {isBulk ? "Bulk Seat Booking" : `Seat ${seat.id}`}
-        </h2>
-
-        <hr />
+    <div className="smodal-overlay">
+      <div className="smodal-content">
+        <div className="smodal-header">
+          <h2>{isBulk ? "Bulk Seat Booking" : `Seat ${seat.id}`}</h2>
+          <button className="close-modal"onClick={onClose}>&times;</button>
+        </div>
 
         {seatsToDisplay.map((seatId, idx) => {
 
@@ -391,28 +411,42 @@ const BookingModal = ({ seat, onClose, currentStudentId }) => {
     <h4>Enter Usernames For Each Seat</h4>
 
     {seatsToDisplay.map((seatId, index) => (
-      <div key={index} style={{ marginBottom: "8px" }}>
-        <label>{seatId} Username:</label>
-        <input
-          type="text"
-          value={multiUsernames[index] || ""}
-          onChange={(e) => {
-            const updated = [...multiUsernames];
-            updated[index] = e.target.value;
-            setMultiUsernames(updated);
-          }}
-        />
-      </div>
-    ))}
+  <div key={index} className="mulinput-group">
+    <label>{seatId}</label>
+    <select
+      className="booking-select"
+      value={multiUsernames[index] || ""}
+      onChange={(e) => {
+        const updated = [...multiUsernames];
+        updated[index] = e.target.value;
+        setMultiUsernames(updated);
+      }}
+    >
+      {allowedUsers.map((user, i) => (
+        <option key={i} value={user}>
+          {user}
+        </option>
+      ))}
+    </select>
+  </div>
+))}
   </>
 ) : (
   <>
-    <label>Booked For (Username):</label>
-    <input
-      type="text"
-      value={bookedForUsername}
-      onChange={(e) => setBookedForUsername(e.target.value)}
-    />
+   <div className="input-group">
+  <label>Booked For (Username):</label>
+  <select
+    className="booking-select"
+    value={bookedForUsername}
+    onChange={(e) => setBookedForUsername(e.target.value)}
+  >
+    {allowedUsers.map((user, i) => (
+      <option key={i} value={user}>
+        {user}
+      </option>
+    ))}
+  </select>
+</div>
   </>
 )}
 
@@ -440,8 +474,6 @@ const BookingModal = ({ seat, onClose, currentStudentId }) => {
             </button>
           </>
         )}
-
-        <button onClick={onClose}>Close</button>
 
       </div>
     </div>

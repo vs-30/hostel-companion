@@ -4,9 +4,11 @@ import {useNavigate} from "react-router-dom"
 import { db } from "./firebase";
 import { auth } from "./firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import { collection, onSnapshot} from "firebase/firestore";
+import { collectionGroup, query, onSnapshot } from "firebase/firestore";
 import { MdBatteryChargingFull } from 'react-icons/md';
+
 import BookingModal from "./BookingModal";
+import FriendsModal from "./FriendsModal";
 import "./styles/seatStyle.css";
 
 const LibraryMap = () => {
@@ -16,6 +18,7 @@ const LibraryMap = () => {
   const [currentFloor, setCurrentFloor] = useState(1);
   const [currentStudentId, setCurrentStudentId] = useState(null);
   const [authChecked, setAuthChecked] = useState(false);
+  const [showFriends, setShowFriends] = useState(false);
   const navigate = useNavigate();
 
 
@@ -37,14 +40,18 @@ useEffect(() => {
     navigate("/login");
   }
 }, [authChecked, currentStudentId, navigate]);
+
 useEffect(() => {
-  const unsubscribe = onSnapshot(collection(db, "seatBookings"), (snapshot) => {
+  const q = query(collectionGroup(db, "bookings"));
+
+  const unsubscribe = onSnapshot(q, (snapshot) => {
     const data = {};
-    const now = Date.now(); // Get fresh time on every DB change
+    const now = Date.now();
 
     snapshot.forEach((docSnap) => {
       const booking = docSnap.data();
-      // Keep only future or currently active bookings
+      
+
       if (booking.to > now) {
         if (!data[booking.seatId]) {
           data[booking.seatId] = { bookings: [] };
@@ -52,12 +59,13 @@ useEffect(() => {
         data[booking.seatId].bookings.push(booking);
       }
     });
+    
+    console.log("Updated Firebase Seats:", data); // Debug to see if data arrives
     setFirebaseSeats(data);
   });
+
   return () => unsubscribe();
 }, []);
-
-  
 
   const getSeatStatus = (id) => {
   const data = firebaseSeats[id];
@@ -103,7 +111,7 @@ useEffect(() => {
     <div className="bench-unit">
       <div className="seat-row-side">{[1, 2, 3, 4].map(s => renderSeat(`${benchId}-T${s}`))}</div>
       <div className="bench-surface"onClick={() => {
-    const seats = [1,2,3,4].map(s => `${benchId}-S${s}`);
+    const seats = [1,2,3,4,5,6,7,8].map(s => `${benchId}-S${s}`);
     setSelectedSeat({ id: benchId, bulkSeats: seats });
   }}>{<MdBatteryChargingFull size={20}/>}</div>
       <div className="seat-row-side">{[5, 6, 7, 8].map(s => renderSeat(`${benchId}-B${s}`))}</div>
@@ -113,7 +121,7 @@ useEffect(() => {
     <div className="bench-unit-flipped">
       <div className="seat-side-flipped">{[1, 2, 3, 4].map(s => renderSeat(`${benchId}-T${s}`))}</div>
       <div className="bench-surface-flipped"onClick={() => {
-    const seats = [1,2,3,4].map(s => `${benchId}-S${s}`);
+    const seats = [1,2,3,4,5,6,7,8].map(s => `${benchId}-S${s}`);
     setSelectedSeat({ id: benchId, bulkSeats: seats });
   }}>{<MdBatteryChargingFull size={20}/>}</div>
       <div className="seat-side-flipped">{[5, 6, 7, 8].map(s => renderSeat(`${benchId}-B${s}`))}</div>
@@ -123,7 +131,7 @@ useEffect(() => {
     <div className="bench-unit-flipped">
       <div className="seat-side-flipped">{[1, 2, 3, 4].map(s => renderSeat(`${benchId}-T${s}`))}</div>
       <div className="bench-surface-flipped" onClick={() => {
-    const seats = [1,2,3,4].map(s => `${benchId}-S${s}`);
+    const seats = [1,2,3,4,5,6,7,8].map(s => `${benchId}-S${s}`);
     setSelectedSeat({ id: benchId, bulkSeats: seats });
   }}></div>
       <div className="seat-side-flipped">{[5, 6, 7, 8].map(s => renderSeat(`${benchId}-B${s}`))}</div>
@@ -385,6 +393,12 @@ const renderUpperFloor = () => (
   return (
   <div className="library-container">
     {/* FLOOR SELECTOR - Centered and Styled */}
+    <button 
+  className="friends-btn"
+  onClick={() => setShowFriends(true)}
+>
+  Friends
+</button>
     <div className="floor-selector">
       <button 
         className={currentFloor === 0 ? "active" : ""} 
@@ -417,6 +431,12 @@ const renderUpperFloor = () => (
         currentStudentId={currentStudentId}
       />
     )}
+    {showFriends && (
+  <FriendsModal 
+    currentStudentId={currentStudentId}
+    onClose={() => setShowFriends(false)}
+  />
+)}
     {selectedZone && renderZoneLayout()}
   </div>
 );

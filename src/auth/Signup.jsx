@@ -178,7 +178,7 @@ const Signup = () => {
         <label className="form-label">Username</label>
         <input
           type="text"
-          className="form-input"
+          className="form-select"
           placeholder="Choose a username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
