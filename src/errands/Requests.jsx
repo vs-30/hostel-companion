@@ -35,25 +35,23 @@ export default function Requests() {
     return () => unsub();
   }, [currentUser]);
 
-  return (
-    <>
-      <h1 className="travel-page-title">My Requests</h1>
-      
-      <div className="posts-grid">
-        {requests.length === 0 ? (
-          <p style={{ gridColumn: "1/-1", textAlign: "center", color: "var(--text-secondary)" }}>
-            No requests yet 👀
-          </p>
-        ) : (
-          requests.map((req) => (
-            <ErrandCard
-              key={req.id}
-              errand={req}
-              currentUser={currentUser}
-            />
-          ))
-        )}
-      </div>
-    </>
-  );
+return (
+  <div className="feed-container">
+    <h1 className="travel-page-title">My Requests</h1>
+
+    <div className="feed-content">
+      {requests.length === 0 ? (
+        <p className="empty-text">No requests yet 👀</p>
+      ) : (
+        requests.map((req) => (
+          <ErrandCard
+            key={req.id}
+            errand={req}
+            currentUser={currentUser}
+          />
+        ))
+      )}
+    </div>
+  </div>
+);
 }

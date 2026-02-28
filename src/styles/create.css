@@ -149,3 +149,115 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     from { opacity: 0; transform: scale(0.8) translateY(20px); }
     to { opacity: 1; transform: scale(1) translateY(0); }
 }
+/* Errands specific styles */
+/*CreateErrand Modal Styles*/
+.modal-content {
+  border-radius: 24px;
+  padding: 30px;
+}
+.modal-header {
+  position: relative;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.modal-header h2 {
+  margin: 0;
+}
+
+.modal-close {
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+.modal-select {
+  width: 100%;
+  padding: 16px;
+  font-size: 16px;
+  border-radius: 12px;
+}
+/* Request feed */
+.feed-container {
+  padding-left: 240px;   /* sidebar width + spacing */
+  padding-right: 40px;
+  padding-top: 40px;
+}
+
+.feed-content {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.empty-text {
+  text-align: center;
+  color: var(--text-secondary);
+  margin-top: 40px;
+}
+/* Errand Chat room */
+.chat-container {
+  padding-left: 240px;
+  padding-top: 30px;
+  max-width: 750px;
+  margin: 0 auto;
+}
+
+.chat-messages {
+  height: 60vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.chat-bubble {
+  padding: 12px 16px;
+  border-radius: 16px;
+  max-width: 65%;
+}
+
+.chat-bubble.me {
+  align-self: flex-end;
+  background: var(--accent-color);
+  color: white;
+}
+
+.chat-bubble.them {
+  align-self: flex-start;
+  background: var(--card-bg);
+}
+
+.chat-input {
+  display: flex;
+  gap: 10px;
+}
+/* Errand feed */
+.search-wrapper {
+  margin-bottom: 20px;
+}
+
+.category-tabs {
+  margin-top: 10px;
+  margin-bottom: 25px;
+}
+.category-tabs {
+  display: flex;
+  gap: 12px;
+}
+.search-section {
+  background: var(--card-bg);
+  padding: 20px;
+  border-radius: 16px;
+  margin-bottom: 30px;
+}
+.travel-card {
+  border-radius: 20px;
+  padding: 24px;
+  background: var(--card-bg);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+  transition: transform 0.2s ease;
+}
+
+.travel-card:hover {
+  transform: translateY(-4px);
+}

@@ -84,16 +84,15 @@ export default function CreateErrand() {
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div>
-              <h2 style={{ color: "var(--text-main)", margin: 0 }}>
-                Create Errand
-              </h2>
-              <button className="modal-close"
-                onClick={() => setShowModal(false)}
-              >
-                <IoClose />
-              </button>
-            </div>
+            <div className="modal-header">
+            <h2>Post Order</h2>
+            <button 
+              className="modal-close"
+              onClick={() => setShowModal(false)}
+            >
+              <IoClose />
+             </button>
+        </div>
             
             <form onSubmit={handleSubmit}>
               {/* Shop Selection */}
@@ -154,20 +153,15 @@ export default function CreateErrand() {
                 
                 <button
                   type="button"
+                  className="add-item-btn"
                   onClick={handleAddItem}
                 >
                   + Add Another Item
                 </button>
               </div>
 
-              {/* Total Items Display */}
-              <div>
-                <strong>Total Items: {calculateTotalItems()}</strong>
-                <br />
-                <small style={{ color: "var(--text-secondary)" }}>
-                  You'll earn {calculateTotalItems() * 10} credits if someone accepts
-                </small>
-              </div>
+  
+            
 
               {/* Additional Notes */}
               <div className="input-group">
@@ -181,16 +175,9 @@ export default function CreateErrand() {
               </div>
 
               {/* Action Buttons */}
-              <div style={{ display: "flex", gap: "10px", marginTop: "20px" }}>
+              <div className="submit-container">
                 <button type="submit" className="action-btn">
-                  Post Request (Earn {calculateTotalItems() * 10} Credits)
-                </button>
-                <button 
-                  type="button" 
-                  className="action-btn secondary-btn"
-                  onClick={() => setShowModal(false)}
-                >
-                  Cancel
+                  Post Request✨
                 </button>
               </div>
             </form>

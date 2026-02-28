@@ -1,4 +1,5 @@
-
+import { calculatePoints } from "./errandsService";
+import { useNavigate } from "react-router-dom";
 
 export default function ErrandCard({
   errand,
@@ -6,7 +7,17 @@ export default function ErrandCard({
   onComplete,
   currentUser,
 }) {
-  const creditAmount = (errand.totalItems || 1) * 10;
+  const navigate = useNavigate();
+  if (!errand) return null;
+
+  const creditAmount = calculatePoints(
+    errand.type,
+    errand.totalItems || 1
+  );
+
+  // ✅ build chatId exactly same way as in ErrandFeed
+  const chatId =
+    errand.id + "_" + errand.acceptedBy;
 
   return (
     <div className="travel-card">
@@ -30,7 +41,7 @@ export default function ErrandCard({
           </button>
         )}
 
-      {/* Complete Button (Only Requester Sees This) */}
+      {/* Complete Button */}
       {currentUser?.uid === errand.requesterId &&
         errand.status === "accepted" && (
           <button
@@ -41,9 +52,26 @@ export default function ErrandCard({
           </button>
         )}
 
+      {/* ✅ CHAT BUTTON */}
+      {errand.status === "accepted" &&
+        (currentUser?.uid === errand.requesterId ||
+          currentUser?.uid === errand.acceptedBy) && (
+          <button
+            className="action-btn"
+            onClick={() =>
+              navigate(`/errand-chat/${chatId}`)
+            }
+          >
+            Open Chat 💬
+          </button>
+        )}
+
+      {/* Owner Label */}
       {currentUser?.uid === errand.requesterId &&
         errand.status === "pending" && (
-          <div className="owner-status">✨ Your Request</div>
+          <div className="owner-status">
+            ✨ Your Request
+          </div>
         )}
     </div>
   );

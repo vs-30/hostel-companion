@@ -19,6 +19,7 @@ import TASBLayout from "./errands/TAsidebarlayout";
 import ErrandFeed from "./errands/ErrandFeed";
 import Shops from "./errands/Shops";
 import Requests from "./errands/Requests";
+import ErrandChat from "./errands/ErrandChat";
 function App() {
   return (
     <Routes>
@@ -38,6 +39,7 @@ function App() {
       <Route path="/shops" element={<Shops/>}/>
       <Route path="/requests" element={<Requests/>}/>
       </Route>
+      <Route path="/errand-chat/:chatId" element={<ErrandChat />} />
       <Route path="/lib-live" element={<LibraryMap />} />
       <Route path="/help-hub" element={<HelpHubHome />} />
       <Route path="/helphub/question/:id" element={<QuestionDetail />} />

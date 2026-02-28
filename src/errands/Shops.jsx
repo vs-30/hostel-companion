@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { doc, onSnapshot } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { db, auth } from "../firebase";
+import { STORE_RULES } from "./errandsService";
 
 export default function Shops() {
   const [userId, setUserId] = useState(null);
@@ -67,15 +68,15 @@ export default function Shops() {
               Your Credits: {taskCredits[shop.key] || 0} pts
             </div>
 
-            <p
-              style={{
-                fontSize: "0.9rem",
-                color: "var(--text-secondary)",
-                textAlign: "center"
-              }}
-            >
-              Earn 10 credits per delivery
-            </p>
+<p
+  style={{
+    fontSize: "0.9rem",
+    color: "var(--text-secondary)",
+    textAlign: "center"
+  }}
+>
+  Earn {STORE_RULES[shop.key]?.perItem || STORE_RULES.default.perItem} credits per item
+</p>
           </div>
         ))}
       </div>
